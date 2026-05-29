@@ -1089,6 +1089,9 @@ document.getElementById('settings-back').addEventListener('click', closeSettings
 function openHistory() {
   renderHistory();
   historyPanel.classList.add('open');
+  if (syncConfig.token && syncConfig.gistId) {
+    syncPull().then(ok => { if (ok) renderHistory(); });
+  }
 }
 
 function closeHistory() {
