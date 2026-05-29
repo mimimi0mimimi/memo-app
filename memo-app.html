@@ -1164,9 +1164,10 @@ function checkDailyItems() {
     if (!cat || !item.content?.trim()) return;
     history.unshift({
       id: `daily-${baseTs}-${i}`,
-      catId: cat.id,
+      catId:    cat.id,
       catLabel: cat.label,
       catEmoji: cat.emoji,
+      catBg:    cat.color ? colorToBg(cat.color) : (cat.bg || colorToBg('#7c3aed')),
       text: item.content.trim(),
       done: false,
       ts: new Date(baseTs + i).toISOString(),
