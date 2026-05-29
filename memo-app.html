@@ -378,6 +378,46 @@
       margin-top: 10px;
       touch-action: manipulation;
     }
+
+    .daily-hint { font-size: 12px; color: #a78bfa; margin: -4px 0 10px 2px; }
+    .daily-row {
+      background: #fff;
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.08);
+    }
+    .daily-cat-select {
+      background: #f3f0ff;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 10px;
+      color: #1a1a2e;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      flex-shrink: 0;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .daily-del-btn {
+      width: 28px;
+      height: 28px;
+      background: #fee2e2;
+      border: none;
+      border-radius: 50%;
+      color: #f87171;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      touch-action: manipulation;
+    }
     .del-btn:active { background: #fca5a5; }
 
     #add-cat-btn {
@@ -711,6 +751,11 @@
   <div id="cat-settings-list"></div>
   <button id="add-cat-btn">＋ カテゴリを追加</button>
 
+  <div class="section-label">📅 毎日追加</div>
+  <div class="daily-hint">起動時にその日がまだなければ自動追加します</div>
+  <div id="daily-settings-list"></div>
+  <button id="add-daily-btn">＋ 追加</button>
+
   <div class="section-label">動作</div>
   <div class="toggle-row">
     <span class="toggle-label">バイブレーション</span>
@@ -797,10 +842,12 @@ const DEFAULT_CATS = [
 ];
 
 // ── State ────────────────────────────────────────────────────────────────────
-let cats     = JSON.parse(localStorage.getItem('memo_cats') || 'null') || deepCopy(DEFAULT_CATS);
-let history  = JSON.parse(localStorage.getItem('memo_history') || '[]');
-let prefs    = JSON.parse(localStorage.getItem('memo_prefs') || '{"vib":true}');
-let editCats = [];
+let cats        = JSON.parse(localStorage.getItem('memo_cats') || 'null') || deepCopy(DEFAULT_CATS);
+let history     = JSON.parse(localStorage.getItem('memo_history') || '[]');
+let prefs       = JSON.parse(localStorage.getItem('memo_prefs') || '{"vib":true}');
+let dailyItems  = JSON.parse(localStorage.getItem('memo_daily') || '[]');
+let editCats    = [];
+let editDailyItems = [];
 let historyFilter = { done: 'all', catId: 'all' };
 
 function deepCopy(x) { return JSON.parse(JSON.stringify(x)); }
@@ -905,7 +952,9 @@ function openSettings() {
     ...c,
     color: c.color || extractColor(c.bg || ''),
   }));
+  editDailyItems = deepCopy(dailyItems);
   renderCatSettings();
+  renderDailyList();
   vibToggle.classList.toggle('on', prefs.vib);
   settingsPanel.classList.add('open');
 }
@@ -1065,6 +1114,77 @@ document.getElementById('add-cat-btn').addEventListener('click', () => {
   catSettingsList.lastElementChild.scrollIntoView({ behavior: 'smooth' });
 });
 
+// ── Daily auto-add ─────────────────────────────────────────────────────────────
+function renderDailyList() {
+  const list = document.getElementById('daily-settings-list');
+  list.innerHTML = '';
+  editDailyItems.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'daily-row';
+
+    const sel = document.createElement('select');
+    sel.className = 'daily-cat-select';
+    editCats.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = `${c.emoji} ${c.label}`;
+      if (c.id === item.catId) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', () => { editDailyItems[i].catId = sel.value; });
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'field-input';
+    input.style.flex = '1';
+    input.placeholder = '内容を入力';
+    input.value = item.content || '';
+    input.addEventListener('input', () => { editDailyItems[i].content = input.value; });
+
+    const del = document.createElement('button');
+    del.className = 'daily-del-btn';
+    del.textContent = '×';
+    del.addEventListener('click', () => { editDailyItems.splice(i, 1); renderDailyList(); });
+
+    row.appendChild(sel);
+    row.appendChild(input);
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+}
+
+function checkDailyItems() {
+  if (!dailyItems.length) return;
+  const today = new Date().toDateString();
+  if (localStorage.getItem('memo_daily_last') === today) return;
+  const baseTs = Date.now();
+  let added = 0;
+  dailyItems.forEach((item, i) => {
+    const cat = cats.find(c => c.id === item.catId);
+    if (!cat || !item.content?.trim()) return;
+    history.unshift({
+      id: `daily-${baseTs}-${i}`,
+      catId: cat.id,
+      catLabel: cat.label,
+      catEmoji: cat.emoji,
+      text: item.content.trim(),
+      done: false,
+      ts: new Date(baseTs + i).toISOString(),
+    });
+    added++;
+  });
+  if (!added) return;
+  localStorage.setItem('memo_history', JSON.stringify(history));
+  localStorage.setItem('memo_daily_last', today);
+  syncAuto();
+}
+
+document.getElementById('add-daily-btn').addEventListener('click', () => {
+  editDailyItems.push({ id: `d-${Date.now()}`, catId: editCats[0]?.id || '', content: '' });
+  renderDailyList();
+  document.getElementById('daily-settings-list').lastElementChild?.scrollIntoView({ behavior: 'smooth' });
+});
+
 vibToggle.addEventListener('click', () => {
   prefs.vib = !prefs.vib;
   vibToggle.classList.toggle('on', prefs.vib);
@@ -1074,8 +1194,10 @@ document.getElementById('save-btn').addEventListener('click', () => {
   cats = editCats
     .filter(c => c.label.trim() && c.emoji.trim())
     .map(c => ({ ...c, bg: colorToBg(c.color || extractColor(c.bg || '')) }));
-  localStorage.setItem('memo_cats', JSON.stringify(cats));
-  localStorage.setItem('memo_prefs', JSON.stringify(prefs));
+  dailyItems = editDailyItems.filter(d => d.content?.trim());
+  localStorage.setItem('memo_cats',   JSON.stringify(cats));
+  localStorage.setItem('memo_prefs',  JSON.stringify(prefs));
+  localStorage.setItem('memo_daily',  JSON.stringify(dailyItems));
   renderGrid();
   closeSettings();
   syncAuto(); // カテゴリ・設定変更も Gist へ同期
@@ -1327,7 +1449,8 @@ async function gistReq(method, path, body) {
 }
 
 function buildSyncPayload() {
-  return JSON.stringify({ cats, history, prefs, savedAt: new Date().toISOString() }, null, 2);
+  const dailyLastDate = localStorage.getItem('memo_daily_last') || '';
+  return JSON.stringify({ cats, history, prefs, dailyItems, dailyLastDate, savedAt: new Date().toISOString() }, null, 2);
 }
 
 async function syncPush() {
@@ -1375,9 +1498,11 @@ async function syncPull() {
     const raw = gist.files?.['memo-sync.json']?.content;
     if (!raw) throw new Error('ファイルが見つかりません');
     const data = JSON.parse(raw);
-    if (data.cats)    { cats = data.cats;       localStorage.setItem('memo_cats',    JSON.stringify(cats));    renderGrid(); }
-    if (data.history) { history = data.history; localStorage.setItem('memo_history', JSON.stringify(history)); }
-    if (data.prefs)   { prefs = data.prefs;     localStorage.setItem('memo_prefs',   JSON.stringify(prefs));   }
+    if (data.cats)          { cats = data.cats;             localStorage.setItem('memo_cats',        JSON.stringify(cats));        renderGrid(); }
+    if (data.history)       { history = data.history;       localStorage.setItem('memo_history',     JSON.stringify(history));     }
+    if (data.prefs)         { prefs = data.prefs;           localStorage.setItem('memo_prefs',       JSON.stringify(prefs));       }
+    if (data.dailyItems)    { dailyItems = data.dailyItems; localStorage.setItem('memo_daily',       JSON.stringify(dailyItems));  }
+    if (data.dailyLastDate) { localStorage.setItem('memo_daily_last', data.dailyLastDate); }
     syncConfig.lastSync = new Date().toISOString();
     localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
     setSyncStatus(`✓ 取得済み ${new Date().toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' })}`);
@@ -1447,9 +1572,11 @@ setupPWA();
 renderGrid();
 setTimeout(() => memoInput.focus(), 400);
 
-// 起動時に Gist から自動取得
+// 起動時に Gist から自動取得 → 取得後に毎日追加チェック
 if (syncConfig.token && syncConfig.gistId) {
-  syncPull().then(ok => { if (ok) renderHistory(); });
+  syncPull().then(ok => { if (ok) renderHistory(); checkDailyItems(); });
+} else {
+  checkDailyItems();
 }
 
 // 画面を見に来たとき（タブ切替・スリープ復帰）に自動取得
