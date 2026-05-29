@@ -575,6 +575,20 @@
       margin: 18px 0 8px 2px;
     }
     .h-empty { text-align: center; color: #c4b5fd; font-size: 15px; padding: 50px 0; line-height: 2; }
+    .export-btn {
+      padding: 8px 12px;
+      background: #ede9fe;
+      border: none;
+      border-radius: 10px;
+      color: #7c3aed;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+    .export-btn:active { background: #ddd6fe; }
+
     .clear-btn {
       padding: 8px 14px;
       background: #fee2e2;
@@ -808,7 +822,8 @@
   <div class="panel-header">
     <button class="back-btn" id="history-back" aria-label="戻る">←</button>
     <span class="panel-title">履歴</span>
-    <button class="clear-btn" id="clear-btn">全削除</button>
+    <button class="export-btn" id="export-btn" title="完了済みをCSVエクスポート">📥 CSV</button>
+    <button class="clear-btn" id="clear-btn">完了を削除</button>
   </div>
   <div id="history-filters"></div>
   <div id="history-list"></div>
@@ -1356,10 +1371,47 @@ function renderHistory() {
 document.getElementById('history-btn').addEventListener('click', openHistory);
 document.getElementById('history-back').addEventListener('click', closeHistory);
 
+document.getElementById('export-btn').addEventListener('click', () => {
+  const done = history.filter(h => h.done);
+  if (!done.length) { alert('完了済みのアイテムがありません'); return; }
+
+  // BOM付きCSV（Excelで文字化けしない）
+  const rows = [['日時', 'カテゴリ', '内容']];
+  done.forEach(h => {
+    const dt = new Date(h.ts).toLocaleString('ja-JP', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit'
+    });
+    const cat = h.catLabel || '';
+    const text = (h.text || '').replace(/"/g, '""'); // CSV エスケープ
+    rows.push([dt, cat, `"${text}"`]);
+  });
+  const csv = '﻿' + rows.map(r => r.join(',')).join('\r\n');
+  const fileName = `memo-done-${new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g, '')}.csv`;
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+
+  // iPhone: Web Share API でファイル共有、PC: 直接ダウンロード
+  try {
+    const file = new File([blob], fileName, { type: 'text/csv' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: '完了済みメモ' });
+      return;
+    }
+  } catch (_) {}
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
 document.getElementById('clear-btn').addEventListener('click', () => {
-  if (confirm('履歴をすべて削除しますか？')) {
-    history = [];
-    localStorage.setItem('memo_history', '[]');
+  const doneCount = history.filter(h => h.done).length;
+  if (!doneCount) { alert('完了済みのアイテムがありません'); return; }
+  if (confirm(`完了済み ${doneCount} 件を削除しますか？`)) {
+    history = history.filter(h => !h.done);
+    localStorage.setItem('memo_history', JSON.stringify(history));
     renderHistory();
     syncAuto();
   }
