@@ -1197,6 +1197,7 @@ function renderHistory() {
         localStorage.setItem('memo_history', JSON.stringify(history));
         if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
         renderHistory();
+        syncAuto();
       }
     });
   });
@@ -1219,6 +1220,7 @@ function renderHistory() {
       localStorage.setItem('memo_history', JSON.stringify(history));
       if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
       renderHistory();
+      syncAuto();
     });
   });
 }
@@ -1231,6 +1233,7 @@ document.getElementById('clear-btn').addEventListener('click', () => {
     history = [];
     localStorage.setItem('memo_history', '[]');
     renderHistory();
+    syncAuto();
   }
 });
 
@@ -1431,8 +1434,11 @@ document.getElementById('copy-gist-btn').addEventListener('click', () => {
 });
 
 // ── Init ─────────────────────────────────────────────────────────────────────
-const BUILD_DATE = '2026-05-29 (Thu)';
-document.getElementById('build-stamp').textContent = `build: ${BUILD_DATE}`;
+const buildStamp = new Date(document.lastModified).toLocaleString('ja-JP', {
+  year: 'numeric', month: '2-digit', day: '2-digit',
+  hour: '2-digit', minute: '2-digit'
+});
+document.getElementById('build-stamp').textContent = `build: ${buildStamp}`;
 
 setupPWA();
 renderGrid();
@@ -1442,6 +1448,13 @@ setTimeout(() => memoInput.focus(), 400);
 if (syncConfig.token && syncConfig.gistId) {
   syncPull().then(ok => { if (ok) renderHistory(); });
 }
+
+// 画面を見に来たとき（タブ切替・スリープ復帰）に自動取得
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && syncConfig.token && syncConfig.gistId) {
+    syncPull().then(ok => { if (ok) renderHistory(); });
+  }
+});
 </script>
 </body>
 </html>
