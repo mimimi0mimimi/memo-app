@@ -1199,8 +1199,10 @@ document.getElementById('save-btn').addEventListener('click', () => {
   localStorage.setItem('memo_cats',   JSON.stringify(cats));
   localStorage.setItem('memo_prefs',  JSON.stringify(prefs));
   localStorage.setItem('memo_daily',  JSON.stringify(dailyItems));
+  localStorage.setItem('memo_daily_saved', new Date().toISOString());
   renderGrid();
   closeSettings();
+  checkDailyItems(); // 保存直後にも毎日追加チェック
   syncAuto(); // カテゴリ・設定変更も Gist へ同期
   if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
 });
@@ -1450,8 +1452,9 @@ async function gistReq(method, path, body) {
 }
 
 function buildSyncPayload() {
-  const dailyLastDate = localStorage.getItem('memo_daily_last') || '';
-  return JSON.stringify({ cats, history, prefs, dailyItems, dailyLastDate, savedAt: new Date().toISOString() }, null, 2);
+  const dailyLastDate  = localStorage.getItem('memo_daily_last')  || '';
+  const dailyItemsSavedAt = localStorage.getItem('memo_daily_saved') || '';
+  return JSON.stringify({ cats, history, prefs, dailyItems, dailyLastDate, dailyItemsSavedAt, savedAt: new Date().toISOString() }, null, 2);
 }
 
 async function syncPush() {
@@ -1502,7 +1505,14 @@ async function syncPull() {
     if (data.cats)          { cats = data.cats;             localStorage.setItem('memo_cats',        JSON.stringify(cats));        renderGrid(); }
     if (data.history)       { history = data.history;       localStorage.setItem('memo_history',     JSON.stringify(history));     }
     if (data.prefs)         { prefs = data.prefs;           localStorage.setItem('memo_prefs',       JSON.stringify(prefs));       }
-    if (data.dailyItems)    { dailyItems = data.dailyItems; localStorage.setItem('memo_daily',       JSON.stringify(dailyItems));  }
+    // dailyItems: Gistより新しいローカル設定は上書きしない
+    const localDailySaved = localStorage.getItem('memo_daily_saved') || '';
+    const gistDailySaved  = data.dailyItemsSavedAt || '';
+    if (data.dailyItems !== undefined && gistDailySaved >= localDailySaved) {
+      dailyItems = data.dailyItems;
+      localStorage.setItem('memo_daily', JSON.stringify(dailyItems));
+      if (gistDailySaved) localStorage.setItem('memo_daily_saved', gistDailySaved);
+    }
     if (data.dailyLastDate) { localStorage.setItem('memo_daily_last', data.dailyLastDate); }
     syncConfig.lastSync = new Date().toISOString();
     localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
