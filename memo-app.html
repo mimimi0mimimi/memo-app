@@ -616,6 +616,13 @@
       touch-action: manipulation;
       flex-shrink: 0;
     }
+    #build-stamp {
+      text-align: center;
+      font-size: 10px;
+      color: #c4b5fd;
+      margin-top: 12px;
+      letter-spacing: 0.05em;
+    }
 
     /* ── History Filters ── */
     #history-filters {
@@ -728,6 +735,7 @@
     <div class="sync-actions">
       <button class="sync-btn" id="sync-push-btn">↑ 送信</button>
       <button class="sync-btn secondary" id="sync-pull-btn">↓ 取得</button>
+      <button class="sync-btn secondary" id="sync-reset-btn" title="IDをリセットして新しいGistを作成">↺ リセット</button>
       <span id="sync-status">未設定</span>
     </div>
     <div class="sync-hint">
@@ -747,6 +755,7 @@
   </div>
 
   <button id="save-btn">✓ 保存する</button>
+  <div id="build-stamp"></div>
 </div>
 
 <!-- History panel -->
@@ -1317,6 +1326,7 @@ function buildSyncPayload() {
 
 async function syncPush() {
   const tokenEl = document.getElementById('sync-token');
+  const gistEl  = document.getElementById('sync-gist-id');
   if (tokenEl?.value.trim()) syncConfig.token = tokenEl.value.trim();
   if (!syncConfig.token) { setSyncStatus('⚠ トークンが未入力です'); return; }
   setSyncStatus('送信中…');
@@ -1332,15 +1342,17 @@ async function syncPush() {
         public: false,
         files: { 'memo-sync.json': { content } },
       });
+      if (!res.id) throw new Error('Gist IDが取得できませんでした');
       syncConfig.gistId = res.id;
-      const gistInput = document.getElementById('sync-gist-id');
-      if (gistInput) gistInput.value = res.id;
     }
     syncConfig.lastSync = new Date().toISOString();
     localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
+    // 成功後は必ず ID フィールドを更新
+    if (gistEl && syncConfig.gistId) gistEl.value = syncConfig.gistId;
     setSyncStatus(`✓ 送信済み ${new Date().toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' })}`);
   } catch (e) {
     setSyncStatus(`⚠ 送信エラー: ${e.message}`);
+    console.error('syncPush error:', e);
   }
 }
 
@@ -1398,6 +1410,14 @@ document.getElementById('sync-gist-id').addEventListener('input', e => {
   localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
 });
 document.getElementById('sync-push-btn').addEventListener('click', syncPush);
+document.getElementById('sync-reset-btn').addEventListener('click', () => {
+  if (!confirm('Gist ID をリセットして次回送信時に新しい Gist を作成しますか？')) return;
+  syncConfig.gistId = '';
+  localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
+  const gistEl = document.getElementById('sync-gist-id');
+  if (gistEl) gistEl.value = '';
+  setSyncStatus('リセット済み — 送信で新規作成されます');
+});
 document.getElementById('sync-pull-btn').addEventListener('click', async () => {
   const ok = await syncPull();
   if (ok) renderHistory();
@@ -1411,6 +1431,9 @@ document.getElementById('copy-gist-btn').addEventListener('click', () => {
 });
 
 // ── Init ─────────────────────────────────────────────────────────────────────
+const BUILD_DATE = '2026-05-29 (Thu)';
+document.getElementById('build-stamp').textContent = `build: ${BUILD_DATE}`;
+
 setupPWA();
 renderGrid();
 setTimeout(() => memoInput.focus(), 400);
