@@ -549,6 +549,74 @@
     }
     .clear-btn:active { background: #fca5a5; }
 
+    /* ── Sync Section ── */
+    .sync-box {
+      background: #fff;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 2px 12px rgba(124,58,237,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .sync-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .sync-btn {
+      padding: 10px 20px;
+      background: #7c3aed;
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: filter 0.15s;
+    }
+    .sync-btn:active { filter: brightness(0.88); }
+    .sync-btn.secondary {
+      background: #f3f0ff;
+      color: #7c3aed;
+    }
+    #sync-status {
+      font-size: 12px;
+      color: #a78bfa;
+      flex: 1;
+      text-align: right;
+      min-width: 0;
+    }
+    .sync-hint {
+      font-size: 11px;
+      color: #7c6aad;
+      background: #f3f0ff;
+      border-radius: 10px;
+      padding: 10px 12px;
+      line-height: 1.7;
+      border-left: 3px solid #c4b5fd;
+    }
+    .sync-gist-id-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sync-gist-id-row .field-input { flex: 1; }
+    .copy-gist-btn {
+      padding: 9px 12px;
+      background: #f3f0ff;
+      border: none;
+      border-radius: 10px;
+      color: #7c3aed;
+      font-size: 14px;
+      cursor: pointer;
+      touch-action: manipulation;
+      flex-shrink: 0;
+    }
+
     /* ── History Filters ── */
     #history-filters {
       padding-bottom: 12px;
@@ -640,6 +708,35 @@
   <div class="toggle-row">
     <span class="toggle-label">バイブレーション</span>
     <button class="toggle on" id="vib-toggle" aria-label="バイブレーション切替"></button>
+  </div>
+
+  <div class="section-label">☁️ クラウド同期（GitHub Gist）</div>
+  <div class="sync-box">
+    <div class="field-group">
+      <div class="field-label">GitHub Personal Access Token</div>
+      <input type="password" id="sync-token" class="field-input"
+        placeholder="ghp_xxxxxxxxxxxx" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="field-group">
+      <div class="field-label">Gist ID（初回送信後に自動入力）</div>
+      <div class="sync-gist-id-row">
+        <input type="text" id="sync-gist-id" class="field-input"
+          placeholder="自動入力されます" autocomplete="off" autocorrect="off" spellcheck="false" readonly>
+        <button class="copy-gist-btn" id="copy-gist-btn" title="コピー">📋</button>
+      </div>
+    </div>
+    <div class="sync-actions">
+      <button class="sync-btn" id="sync-push-btn">↑ 送信</button>
+      <button class="sync-btn secondary" id="sync-pull-btn">↓ 取得</button>
+      <span id="sync-status">未設定</span>
+    </div>
+    <div class="sync-hint">
+      <strong>初回セットアップ：</strong><br>
+      1. <a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank" style="color:#7c3aed">GitHub → Settings → Tokens</a> で <code>gist</code> スコープのみの PAT を発行<br>
+      2. このデバイスでトークン入力 →「↑ 送信」→ Gist ID をコピー<br>
+      3. 他のデバイスでトークン + Gist ID を入力 →「↓ 取得」<br>
+      ※ トークンはこのデバイスにのみ保存され、GitHub には送信されません
+    </div>
   </div>
 
   <div class="section-label">Webhook について</div>
@@ -783,6 +880,8 @@ async function saveMemo(cat) {
     successEl.classList.remove('show');
     setTimeout(() => memoInput.focus(), 150);
   }, 1700);
+
+  syncAuto(); // 3秒後に Gist へ自動送信
 }
 
 successEl.addEventListener('click', () => {
@@ -970,6 +1069,7 @@ document.getElementById('save-btn').addEventListener('click', () => {
   localStorage.setItem('memo_prefs', JSON.stringify(prefs));
   renderGrid();
   closeSettings();
+  syncAuto(); // カテゴリ・設定変更も Gist へ同期
   if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
 });
 
@@ -1188,10 +1288,127 @@ function setupPWA() {
   document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
 }
 
+// ── GitHub Gist Sync ──────────────────────────────────────────────────────────
+let syncConfig = JSON.parse(localStorage.getItem('memo_sync') || '{}');
+let syncDebounceTimer = null;
+
+function setSyncStatus(msg) {
+  const el = document.getElementById('sync-status');
+  if (el) el.textContent = msg;
+}
+
+async function gistReq(method, path, body) {
+  const res = await fetch(`https://api.github.com${path}`, {
+    method,
+    headers: {
+      'Authorization': `token ${syncConfig.token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+function buildSyncPayload() {
+  return JSON.stringify({ cats, history, prefs, savedAt: new Date().toISOString() }, null, 2);
+}
+
+async function syncPush() {
+  if (!syncConfig.token) { setSyncStatus('⚠ トークンが未入力です'); return; }
+  setSyncStatus('送信中…');
+  try {
+    const content = buildSyncPayload();
+    if (syncConfig.gistId) {
+      await gistReq('PATCH', `/gists/${syncConfig.gistId}`, {
+        files: { 'memo-sync.json': { content } },
+      });
+    } else {
+      const res = await gistReq('POST', '/gists', {
+        description: '「あとでやる」超特急メモ — 同期データ',
+        public: false,
+        files: { 'memo-sync.json': { content } },
+      });
+      syncConfig.gistId = res.id;
+      const gistInput = document.getElementById('sync-gist-id');
+      if (gistInput) gistInput.value = res.id;
+    }
+    syncConfig.lastSync = new Date().toISOString();
+    localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
+    setSyncStatus(`✓ 送信済み ${new Date().toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' })}`);
+  } catch (e) {
+    setSyncStatus(`⚠ 送信エラー: ${e.message}`);
+  }
+}
+
+async function syncPull() {
+  if (!syncConfig.token)  { setSyncStatus('⚠ トークンが未入力です'); return false; }
+  if (!syncConfig.gistId) { setSyncStatus('⚠ Gist ID が未入力です'); return false; }
+  setSyncStatus('取得中…');
+  try {
+    const gist = await gistReq('GET', `/gists/${syncConfig.gistId}`);
+    const raw = gist.files?.['memo-sync.json']?.content;
+    if (!raw) throw new Error('ファイルが見つかりません');
+    const data = JSON.parse(raw);
+    if (data.cats)    { cats = data.cats;       localStorage.setItem('memo_cats',    JSON.stringify(cats));    renderGrid(); }
+    if (data.history) { history = data.history; localStorage.setItem('memo_history', JSON.stringify(history)); }
+    if (data.prefs)   { prefs = data.prefs;     localStorage.setItem('memo_prefs',   JSON.stringify(prefs));   }
+    syncConfig.lastSync = new Date().toISOString();
+    localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
+    setSyncStatus(`✓ 取得済み ${new Date().toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' })}`);
+    return true;
+  } catch (e) {
+    setSyncStatus(`⚠ 取得エラー: ${e.message}`);
+    return false;
+  }
+}
+
+function syncAuto() {
+  if (!syncConfig.token) return;
+  clearTimeout(syncDebounceTimer);
+  syncDebounceTimer = setTimeout(() => syncPush(), 3000); // 3秒後に静かに送信
+}
+
+// 設定パネルを開いたとき、保存済みの値を反映
+const _origOpenSettings = openSettings;
+openSettings = function() {
+  _origOpenSettings();
+  const tokenEl  = document.getElementById('sync-token');
+  const gistEl   = document.getElementById('sync-gist-id');
+  if (tokenEl && syncConfig.token)  tokenEl.value  = syncConfig.token;
+  if (gistEl  && syncConfig.gistId) gistEl.value   = syncConfig.gistId;
+  if (syncConfig.lastSync) {
+    setSyncStatus(`最終同期: ${new Date(syncConfig.lastSync).toLocaleString('ja-JP', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })}`);
+  }
+};
+
+document.getElementById('sync-token').addEventListener('change', e => {
+  syncConfig.token = e.target.value.trim();
+  localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
+});
+document.getElementById('sync-push-btn').addEventListener('click', syncPush);
+document.getElementById('sync-pull-btn').addEventListener('click', async () => {
+  const ok = await syncPull();
+  if (ok) renderHistory();
+});
+document.getElementById('copy-gist-btn').addEventListener('click', () => {
+  const id = document.getElementById('sync-gist-id').value;
+  if (!id) return;
+  navigator.clipboard.writeText(id)
+    .then(() => { const b = document.getElementById('copy-gist-btn'); b.textContent = '✓'; setTimeout(() => { b.textContent = '📋'; }, 1500); })
+    .catch(() => {});
+});
+
 // ── Init ─────────────────────────────────────────────────────────────────────
 setupPWA();
 renderGrid();
 setTimeout(() => memoInput.focus(), 400);
+
+// 起動時に Gist から自動取得
+if (syncConfig.token && syncConfig.gistId) {
+  syncPull().then(ok => { if (ok) renderHistory(); });
+}
 </script>
 </body>
 </html>
