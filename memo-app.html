@@ -1391,7 +1391,7 @@ async function syncPull() {
 function syncAuto() {
   if (!syncConfig.token) return;
   clearTimeout(syncDebounceTimer);
-  syncDebounceTimer = setTimeout(() => syncPush(), 3000); // 3秒後に静かに送信
+  syncDebounceTimer = setTimeout(() => { syncDebounceTimer = null; syncPush(); }, 3000); // 3秒後に静かに送信
 }
 
 // 設定パネルを開いたとき、保存済みの値を反映
