@@ -721,7 +721,7 @@
       <div class="field-label">Gist ID（初回送信後に自動入力）</div>
       <div class="sync-gist-id-row">
         <input type="text" id="sync-gist-id" class="field-input"
-          placeholder="自動入力されます" autocomplete="off" autocorrect="off" spellcheck="false" readonly>
+          placeholder="PCで発行されたIDを貼り付け" autocomplete="off" autocorrect="off" spellcheck="false">
         <button class="copy-gist-btn" id="copy-gist-btn" title="コピー">📋</button>
       </div>
     </div>
@@ -1385,6 +1385,10 @@ openSettings = function() {
 
 document.getElementById('sync-token').addEventListener('change', e => {
   syncConfig.token = e.target.value.trim();
+  localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
+});
+document.getElementById('sync-gist-id').addEventListener('change', e => {
+  syncConfig.gistId = e.target.value.trim();
   localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
 });
 document.getElementById('sync-push-btn').addEventListener('click', syncPush);
