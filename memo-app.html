@@ -136,14 +136,21 @@
       word-break: break-all;
       overflow: hidden;
       display: -webkit-box;
-      -webkit-line-clamp: 4;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       user-select: none;
     }
     .sticky-note-meta {
       font-size: 9px;
       color: #a78bfa;
-      margin-top: 6px;
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+    .sticky-note-meta-row {
+      width: 100%;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -174,12 +181,18 @@
       position: relative;
     }
     #folder-archive { border-bottom: 4px solid #22c55e; }
-    #folder-later { border-bottom: 4px solid #3b82f6; }
+    #folder-later { border-bottom: 4px solid #3b82f6; transition: background-color 0.3s, border-color 0.15s; }
     #folder-trash { border-bottom: 4px solid #ef4444; }
     
     #folder-archive.drag-over { background-color: #e8f5e9; border-color: #22c55e; transform: scale(1.06); }
-    #folder-later.drag-over { background-color: #e3f2fd; border-color: #3b82f6; transform: scale(1.06); }
+    #folder-later.drag-over { background-color: #bbdefb !important; border-color: #3b82f6; transform: scale(1.06); }
     #folder-trash.drag-over { background-color: #ffebee; border-color: #ef4444; transform: scale(1.06); }
+
+    /* 「あとで」フォルダに付箋が入っているときの見た目用CSS */
+    #folder-later.has-items {
+      background-color: #e3f2fd; /* 薄い水色 */
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+    }
 
     .folder-emoji { font-size: 24px; }
     .folder-label { font-size: 11px; font-weight: 800; color: #4c4c6d; text-align: center; }
@@ -231,20 +244,25 @@
     }
     #memo-input:focus { border-color: #a78bfa; }
 
-    /* カテゴリ事前選択チップ */
+    /* 【改善】カテゴリ事前選択を横並びから2列のグリッドに変更 */
     .cat-selector-label {
       font-size: 11px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.05em; margin: 12px 0 8px 2px;
     }
     #modal-cat-pickers {
-      display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr; /* 完全に2列固定 */
+      gap: 8px;
+      max-height: 160px;
+      overflow-y: auto;
+      padding-bottom: 4px;
     }
-    #modal-cat-pickers::-webkit-scrollbar { display: none; }
     .cat-chip {
-      flex-shrink: 0; padding: 10px 16px; background: #fff; border: 2px solid #e8e0ff; border-radius: 50px;
+      padding: 10px 14px; background: #fff; border: 2px solid #e8e0ff; border-radius: 14px;
       font-size: 14px; font-weight: 700; color: #4c4c6d; cursor: pointer; touch-action: manipulation;
-      display: flex; align-items: center; gap: 4px; transition: all 0.1s;
+      display: flex; align-items: center; gap: 6px; transition: all 0.1s;
+      width: 100%;
     }
-    .cat-chip:active { transform: scale(0.95); }
+    .cat-chip:active { transform: scale(0.97); }
 
     .modal-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
     .modal-btn.cancel { padding: 10px 20px; border: none; background: transparent; color: #a78bfa; font-size: 14px; font-weight: 600; cursor: pointer; }
@@ -353,8 +371,8 @@
       <span class="folder-hint">完了（裏へ退避）</span>
     </div>
     <div class="folder-box" id="folder-later">
-      <span class="folder-emoji">⏳</span>
-      <span class="folder-label">あとで</span>
+      <span class="folder-emoji" id="later-emoji">⏳</span>
+      <span class="folder-label" id="later-label">あとで</span>
       <span class="folder-hint">Wクリックで復元</span>
     </div>
     <div class="folder-box" id="folder-trash">
@@ -369,7 +387,7 @@
   <div id="input-card">
     <textarea id="memo-input" placeholder="思いついたこと、ここに…" rows="4" autocomplete="off" autocorrect="on" autocapitalize="sentences" spellcheck="true"></textarea>
     
-    <div class="cat-selector-label">カテゴリをタップしてキャンバスへ貼る</div>
+    <div class="cat-selector-label">カテゴリを選択してキャンバスへ貼る</div>
     <div id="modal-cat-pickers"></div>
 
     <div class="modal-actions">
@@ -483,10 +501,26 @@ const catSettingsList= document.getElementById('cat-settings-list');
 const historyList    = document.getElementById('history-list');
 const historyFiltersEl = document.getElementById('history-filters');
 
-// ── Render Canvas ────────────────────────────────────────────────────────────
+// ── Render Canvas & 更新フォルダ状態 ──────────────────────────────────────────
 function renderCanvas() {
   canvasContainer.innerHTML = '';
   const activeNotes = history.filter(item => !item.done && !item.later);
+
+  // 【機能追加】「あとで」フォルダの見た目を動的に変化させるロジック
+  const laterCount = history.filter(item => item.later).length;
+  const folderLaterEl = document.getElementById('folder-later');
+  const laterEmojiEl = document.getElementById('later-emoji');
+  const laterLabelEl = document.getElementById('later-label');
+  
+  if (laterCount > 0) {
+    folderLaterEl.classList.add('has-items');
+    laterEmojiEl.textContent = '⏳';
+    laterLabelEl.textContent = `あとで (${laterCount})`; // 件数をリアルタイム表示
+  } else {
+    folderLaterEl.classList.remove('has-items');
+    laterEmojiEl.textContent = '⏳';
+    laterLabelEl.textContent = 'あとで';
+  }
 
   if (activeNotes.length === 0) {
     const hint = document.createElement('div');
@@ -517,11 +551,19 @@ function renderCanvas() {
       note.style.borderLeftColor = catData.color;
     }
 
+    // 【機能追加】時間表示に「月日」を追加
+    const dateObj = new Date(item.ts);
+    const dateStr = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
+    const timeStr = dateObj.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+
     note.innerHTML = `
       <div class="sticky-note-text">${esc(item.text || '(空メモ)')}</div>
       <div class="sticky-note-meta">
-        <span>${esc(item.catEmoji || '📌')} ${esc(item.catLabel || '未分類')}</span>
-        <span>🕒 ${esc(new Date(item.ts).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }))}</span>
+        <div>📌 ${esc(item.catLabel || '未分類')}</div>
+        <div class="sticky-note-meta-row">
+          <span>📅 ${esc(dateStr)}</span>
+          <span>${esc(timeStr)}</span>
+        </div>
       </div>
     `;
 
@@ -542,7 +584,7 @@ function calculateInitialPosition(catId, canvasWidth, canvasHeight) {
   return { x: targetX, y: targetY };
 }
 
-// ── ポインターイベント対応ドラッグロジック (PCマウス ＆ スマホ両対応) ────────────────
+// ── ポインターイベント対応ドラッグロジック ────────────────────────────────────
 function setupDragElement(el, item) {
   let startX = 0, startY = 0;
   let initialLeft = 0, initialTop = 0;
@@ -552,14 +594,13 @@ function setupDragElement(el, item) {
   el.addEventListener('pointerdown', (e) => {
     isDragging = true;
     el.classList.add('dragging');
-    el.setPointerCapture(e.pointerId); // ポインターをキャプチャして枠外でも追従
+    el.setPointerCapture(e.pointerId);
 
     startX = e.clientX;
     startY = e.clientY;
     initialLeft = parseInt(el.style.left, 10) || 0;
     initialTop = parseInt(el.style.top, 10) || 0;
 
-    // 3大特殊フォルダの判定位置情報を記憶
     targetsData = [
       { element: document.getElementById('folder-archive'), id: 'archive', rect: document.getElementById('folder-archive').getBoundingClientRect() },
       { element: document.getElementById('folder-later'),   id: 'later',   rect: document.getElementById('folder-later').getBoundingClientRect() },
@@ -589,7 +630,6 @@ function setupDragElement(el, item) {
     const currentX = e.clientX;
     const currentY = e.clientY;
     
-    // フォルダ上へのホバー判定
     targetsData.forEach(tgt => {
       if (currentX >= tgt.rect.left && currentX <= tgt.rect.right &&
           currentY >= tgt.rect.top && currentY <= tgt.rect.bottom) {
@@ -672,7 +712,7 @@ function executeFolderAction(itemId, actionType) {
   syncAuto();
 }
 
-// ── 「あとで」フォルダダブルクリック復元 ─────────────────────────────────────────
+// ── 「あとで」フォルダダブルタップ復元 ─────────────────────────────────────────
 document.getElementById('folder-later').addEventListener('dblclick', () => { restoreLaterItems(); });
 let lastTapTime = 0;
 document.getElementById('folder-later').addEventListener('touchend', (e) => {
@@ -698,7 +738,7 @@ function restoreLaterItems() {
   renderCanvas(); syncAuto();
 }
 
-// ── モーダル内カテゴリ選択 ＆ 1タップで即時作成 ───────────────────────────────────
+// ── モーダル内カテゴリ選択（2列グリッド化 ＆ 即時追加） ───────────────────────────
 function renderModalCatPickers() {
   modalCatPickers.innerHTML = '';
   cats.forEach(cat => {
@@ -881,7 +921,7 @@ document.getElementById('settings-btn').addEventListener('click', openSettings);
 document.getElementById('settings-back').addEventListener('click', closeSettings);
 
 
-// ── History Panel (↩️ボタン廃止＆チェックボックス完全双方向連動) ───────────────────
+// ── History Panel ────────────────────────────────────────────────────────────
 function openHistory() { renderHistory(); historyPanel.classList.add('open'); if (syncConfig.token && syncConfig.gistId && !syncDebounceTimer) { syncPull().then(ok => { if (ok) renderHistory(); }); } }
 function closeHistory() { historyPanel.classList.remove('open'); renderCanvas(); }
 
@@ -936,9 +976,8 @@ function renderHistory() {
       const found = history.find(h => h.id === chk.dataset.id);
       if (found) {
         found.done = !found.done;
-        found.later = false; // 状態を動かすので一時保管はリセット
+        found.later = false; 
         
-        // もしチェックを外した（キャンバスに戻した）なら、位置が重ならないよう現在のコンテナサイズで再初期化
         if (!found.done) {
           const rect = canvasContainer.getBoundingClientRect();
           const pos = calculateInitialPosition(found.catId, rect.width || 300, rect.height || 400);
