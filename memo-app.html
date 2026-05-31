@@ -1674,9 +1674,36 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 // ── PWA ──────────────────────────────────────────────────────────────────────
 function setupPWA() {
   const c = document.createElement('canvas'); c.width = c.height = 512; const ctx = c.getContext('2d');
-  const g = ctx.createLinearGradient(0, 0, 512, 512); g.addColorStop(0, '#7c3aed'); g.addColorStop(1, '#ec4899'); ctx.fillStyle = g;
-  const r = 80; ctx.beginPath(); ctx.moveTo(r, 0); ctx.lineTo(512 - r, 0); ctx.quadraticCurveTo(512, 0, 512, r); ctx.lineTo(512, 512 - r); ctx.quadraticCurveTo(512, 512, 512 - r, 512); ctx.lineTo(r, 512); ctx.quadraticCurveTo(0, 512, 0, 512 - r); ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0); ctx.closePath(); ctx.fill();
-  ctx.font = '280px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('⚡', 256, 260);
+
+  // 背景グラデーション（紫→ピンク）
+  const g = ctx.createLinearGradient(0, 0, 512, 512);
+  g.addColorStop(0, '#7c3aed'); g.addColorStop(1, '#ec4899');
+  const r = 100; ctx.beginPath(); ctx.moveTo(r, 0); ctx.lineTo(512 - r, 0); ctx.quadraticCurveTo(512, 0, 512, r); ctx.lineTo(512, 512 - r); ctx.quadraticCurveTo(512, 512, 512 - r, 512); ctx.lineTo(r, 512); ctx.quadraticCurveTo(0, 512, 0, 512 - r); ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0); ctx.closePath();
+  ctx.fillStyle = g; ctx.fill();
+
+  // メモ帳本体（白）
+  const mx = 120, my = 130, mw = 272, mh = 300, mr = 28;
+  ctx.beginPath(); ctx.moveTo(mx + mr, my); ctx.lineTo(mx + mw - mr, my); ctx.quadraticCurveTo(mx + mw, my, mx + mw, my + mr); ctx.lineTo(mx + mw, my + mh - mr); ctx.quadraticCurveTo(mx + mw, my + mh, mx + mw - mr, my + mh); ctx.lineTo(mx + mr, my + mh); ctx.quadraticCurveTo(mx, my + mh, mx, my + mh - mr); ctx.lineTo(mx, my + mr); ctx.quadraticCurveTo(mx, my, mx + mr, my); ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.97)'; ctx.fill();
+
+  // テキスト行
+  const lineX = 158, lineW1 = 196, lineW2 = 155, lineW3 = 176, lineW4 = 120, lineH = 18, lineR = 9;
+  const drawLine = (y, w, color, alpha = 1) => {
+    ctx.beginPath(); ctx.moveTo(lineX + lineR, y); ctx.lineTo(lineX + w - lineR, y); ctx.quadraticCurveTo(lineX + w, y, lineX + w, y + lineH); ctx.lineTo(lineX + w, y + lineH); ctx.quadraticCurveTo(lineX + w, y + lineH + lineH, lineX + w - lineR, y + lineH + lineH - lineH); ctx.lineTo(lineX + lineR, y + lineH); ctx.quadraticCurveTo(lineX, y + lineH, lineX, y); ctx.closePath();
+    ctx.fillStyle = color; ctx.globalAlpha = alpha; ctx.fill(); ctx.globalAlpha = 1;
+  };
+  // 太い1行目
+  ctx.beginPath(); ctx.roundRect(lineX, 210, lineW1, 22, 11); ctx.fillStyle = '#7c3aed'; ctx.fill();
+  // 細い行
+  ctx.beginPath(); ctx.roundRect(lineX, 252, lineW2, 16, 8); ctx.fillStyle = '#c4b5fd'; ctx.fill();
+  ctx.beginPath(); ctx.roundRect(lineX, 284, lineW3, 16, 8); ctx.fillStyle = '#c4b5fd'; ctx.fill();
+  ctx.beginPath(); ctx.roundRect(lineX, 316, lineW4, 16, 8); ctx.fillStyle = '#c4b5fd'; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
+
+  // ピン（左）
+  ctx.beginPath(); ctx.roundRect(186, 88, 40, 68, 20); ctx.fillStyle = '#ec4899'; ctx.fill();
+  // ピン（右）
+  ctx.beginPath(); ctx.roundRect(246, 88, 40, 68, 20); ctx.fillStyle = '#f9a8d4'; ctx.fill();
+
   const iconURL = c.toDataURL('image/png'); document.getElementById('apple-icon').href = iconURL;
   const manifest = { name: 'はるメモ', short_name: 'はるメモ', start_url: './', display: 'standalone', background_color: '#f3f0ff', theme_color: '#7c3aed', orientation: 'portrait-primary', lang: 'ja', icons: [{ src: iconURL, sizes: '512x512', type: 'image/png' }] };
   document.getElementById('pwa-manifest').href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
