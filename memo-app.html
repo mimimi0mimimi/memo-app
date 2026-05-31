@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>「あとでやる」スワイプ付箋メモ</title>
+  <title>はるメモ</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="超特急メモ">
+  <meta name="apple-mobile-web-app-title" content="はるメモ">
   <meta name="theme-color" content="#f3f0ff">
   <link id="pwa-manifest" rel="manifest">
   <link id="apple-icon" rel="apple-touch-icon">
@@ -580,7 +580,7 @@
 <div id="app">
   <div id="header">
     <button class="icon-btn" id="history-btn" aria-label="履歴">📋</button>
-    <div id="header-title">「あとでやる」スワイプ超特急</div>
+    <div id="header-title">はるメモ</div>
     <button class="icon-btn" id="add-trigger-btn" aria-label="メモ追加">＋</button>
     <button class="icon-btn" id="settings-btn" aria-label="設定">⚙️</button>
   </div>
@@ -591,7 +591,7 @@
     <div class="folder-box" id="folder-archive">
       <span class="folder-emoji">📥</span>
       <span class="folder-label">アーカイブ</span>
-      <span class="folder-hint">完了（裏へ退避）</span>
+      <span class="folder-hint">完了したもの</span>
     </div>
     <div class="folder-box" id="folder-later">
       <span class="folder-emoji" id="later-emoji">⏳</span>
@@ -732,10 +732,10 @@ function extractColor(bg) { const m = (bg || '').match(/#[0-9a-fA-F]{6}/); retur
 function isValidHex(v) { return /^#[0-9a-fA-F]{6}$/.test(v); }
 
 const DEFAULT_CATS = [
-  { id:'coconala', label:'ココナラ', emoji:'💼', color:'#059669', webhook:'' },
-  { id:'x',        label:'X',        emoji:'🐦', color:'#18181b', webhook:'' },
-  { id:'idea',     label:'アイデア', emoji:'💡', color:'#7c3aed', webhook:'' },
-  { id:'shopping', label:'買い物',   emoji:'🛒', color:'#ea580c', webhook:'' },
+  { id:'todo',     label:'やること', emoji:'💪', color:'#f4a4c0', webhook:'' },
+  { id:'shopping', label:'買うもの', emoji:'🛒', color:'#b18cfe', webhook:'' },
+  { id:'idea',     label:'アイデア', emoji:'💡', color:'#93e3fd', webhook:'' },
+  { id:'memo',     label:'メモ',     emoji:'📝', color:'#cde8b5', webhook:'' },
 ];
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -1654,7 +1654,7 @@ function setupPWA() {
   const r = 80; ctx.beginPath(); ctx.moveTo(r, 0); ctx.lineTo(512 - r, 0); ctx.quadraticCurveTo(512, 0, 512, r); ctx.lineTo(512, 512 - r); ctx.quadraticCurveTo(512, 512, 512 - r, 512); ctx.lineTo(r, 512); ctx.quadraticCurveTo(0, 512, 0, 512 - r); ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0); ctx.closePath(); ctx.fill();
   ctx.font = '280px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('⚡', 256, 260);
   const iconURL = c.toDataURL('image/png'); document.getElementById('apple-icon').href = iconURL;
-  const manifest = { name: 'スワイプ超特急メモ', short_name: '超特急メモ', start_url: './', display: 'standalone', background_color: '#f3f0ff', theme_color: '#7c3aed', orientation: 'portrait-primary', lang: 'ja', icons: [{ src: iconURL, sizes: '512x512', type: 'image/png' }] };
+  const manifest = { name: 'はるメモ', short_name: 'はるメモ', start_url: './', display: 'standalone', background_color: '#f3f0ff', theme_color: '#7c3aed', orientation: 'portrait-primary', lang: 'ja', icons: [{ src: iconURL, sizes: '512x512', type: 'image/png' }] };
   document.getElementById('pwa-manifest').href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
 }
 
