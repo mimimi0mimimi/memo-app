@@ -120,7 +120,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      border-left: 5px solid #a78bfa;
+      border-left: 6px solid #a78bfa;
       transition: transform 0.05s linear, box-shadow 0.1s;
       z-index: 5;
     }
@@ -130,7 +130,7 @@
       z-index: 99;
     }
     .sticky-note-text {
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.4;
       color: #1a1a2e;
       word-break: break-all;
@@ -149,21 +149,17 @@
       align-items: center;
     }
 
-    /* ── Folders (吸い込み領域) ── */
+    /* ── 3大特殊フォルダ (吸い込み領域) ── */
     #folder-area {
       display: flex;
-      gap: 8px;
-      overflow-x: auto;
+      gap: 10px;
       padding: 6px 2px;
       flex-shrink: 0;
-      scrollbar-width: none;
       z-index: 10;
     }
-    #folder-area::-webkit-scrollbar { display: none; }
 
     .folder-box {
       flex: 1;
-      min-width: 84px;
       height: 76px;
       background: #fff;
       border-radius: 18px;
@@ -172,7 +168,7 @@
       align-items: center;
       justify-content: center;
       gap: 4px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
       transition: transform 0.15s, background-color 0.15s, border-color 0.15s;
       border: 2px solid transparent;
       position: relative;
@@ -180,19 +176,18 @@
     .folder-box.drag-over {
       transform: scale(1.08);
       background-color: #ede9fe;
-      border-color: #a78bfa;
     }
-    .folder-emoji { font-size: 26px; }
-    .folder-label {
-      font-size: 11px;
-      font-weight: 800;
-      color: #4c4c6d;
-      text-align: center;
-      max-width: 76px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    #folder-archive { border-bottom: 4px solid #22c55e; }
+    #folder-later { border-bottom: 4px solid #3b82f6; }
+    #folder-trash { border-bottom: 4px solid #ef4444; }
+    
+    #folder-archive.drag-over { background-color: #f0fdf4; border-color: #22c55e; }
+    #folder-later.drag-over { background-color: #eff6ff; border-color: #3b82f6; }
+    #folder-trash.drag-over { background-color: #fef2f2; border-color: #ef4444; }
+
+    .folder-emoji { font-size: 24px; }
+    .folder-label { font-size: 11px; font-weight: 800; color: #4c4c6d; text-align: center; }
+    .folder-hint { font-size: 8px; color: #a78bfa; font-weight: normal; margin-top: -2px; }
 
     /* ── Input Modal ── */
     #input-modal {
@@ -224,11 +219,11 @@
 
     #memo-input {
       width: 100%;
-      height: 110px;
-      padding: 14px 16px;
+      height: 96px;
+      padding: 12px 14px;
       background: #fff;
       border: 2px solid #e8e0ff;
-      border-radius: 16px;
+      border-radius: 14px;
       color: #1a1a2e;
       font-size: 16px;
       font-family: inherit;
@@ -237,164 +232,80 @@
       outline: none;
       -webkit-appearance: none;
       user-select: text;
-      box-shadow: 0 4px 12px rgba(124,58,237,0.05);
     }
     #memo-input:focus { border-color: #a78bfa; }
 
-    .modal-actions {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 12px;
+    /* カテゴリ事前選択チップ */
+    .cat-selector-label {
+      font-size: 10px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.05em; margin: 10px 0 6px 2px;
     }
-    .modal-btn {
-      flex: 1;
-      padding: 14px;
-      border: none;
-      border-radius: 14px;
-      font-size: 15px;
-      font-weight: 700;
-      font-family: inherit;
-      cursor: pointer;
-      touch-action: manipulation;
+    #modal-cat-pickers {
+      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;
     }
+    #modal-cat-pickers::-webkit-scrollbar { display: none; }
+    .cat-chip {
+      flex-shrink: 0; padding: 8px 14px; background: #fff; border: 2px solid #e8e0ff; border-radius: 50px;
+      font-size: 13px; font-weight: 700; color: #4c4c6d; cursor: pointer; touch-action: manipulation;
+      display: flex; align-items: center; gap: 4px; transition: all 0.15s;
+    }
+    .cat-chip.selected {
+      color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .modal-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; }
+    .modal-btn { flex: 1; padding: 14px; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
     .modal-btn.cancel { background: #ede9fe; color: #7c3aed; }
     .modal-btn.primary { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; box-shadow: 0 4px 14px rgba(124,58,237,0.3); }
-
-    /* ── Success Overlay ── */
-    #success {
-      position: fixed;
-      inset: 0;
-      background: rgba(243,240,255,0.92);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      z-index: 1100;
-      opacity: 0;
-      transform: scale(1.04);
-      pointer-events: none;
-      transition: opacity 0.17s ease, transform 0.17s ease;
-    }
-    #success.show { opacity: 1; transform: scale(1); pointer-events: all; }
-
-    #success-ring {
-      width: 90px;
-      height: 90px;
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 46px;
-      color: #fff;
-      font-weight: 900;
-      box-shadow: 0 8px 32px rgba(34,197,94,0.45);
-    }
-    #success-label { font-size: 21px; font-weight: 800; color: #1a1a2e; text-align: center; }
-    #success-preview {
-      font-size: 14px; color: #7c6aad; max-width: 280px; text-align: center; word-break: break-all;
-      line-height: 1.4; background: rgba(124,58,237,0.08); padding: 8px 14px; border-radius: 12px;
-    }
-    #success-line-btn {
-      display: none; margin-top: 6px; padding: 13px 28px; background: #06c755; color: #fff;
-      border: none; border-radius: 50px; font-size: 16px; font-weight: 700; cursor: pointer;
-      touch-action: manipulation; box-shadow: 0 6px 24px rgba(6,199,85,0.4);
-    }
-    #success-tap-hint { font-size: 12px; color: #a78bfa; margin-top: 4px; }
 
     /* ── Slide Panels ── */
     .panel {
       position: fixed;
-      top: 0;
-      bottom: 0;
-      width: 100%;
-      background: #f8f5ff;
-      z-index: 2000;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      top: 0; bottom: 0; width: 100%; background: #f8f5ff; z-index: 2000; overflow-y: auto; -webkit-overflow-scrolling: touch;
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      padding-top: max(env(safe-area-inset-top, 0px), 14px);
-      padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
-      padding-left: 16px;
-      padding-right: 16px;
+      padding-top: max(env(safe-area-inset-top, 0px), 14px); padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px); padding-left: 16px; padding-right: 16px;
     }
     #settings-panel { right: 0; transform: translateX(100%); }
     #settings-panel.open { transform: translateX(0); }
     #history-panel  { left: 0;  transform: translateX(-100%); }
     #history-panel.open  { transform: translateX(0); }
 
-    .panel-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding-bottom: 18px;
-      border-bottom: 2px solid #ede8ff;
-      margin-bottom: 6px;
-      position: sticky;
-      top: 0;
-      background: #f8f5ff;
-      z-index: 1;
-      padding-top: 4px;
-    }
+    .panel-header { display: flex; align-items: center; gap: 12px; padding-bottom: 18px; border-bottom: 2px solid #ede8ff; margin-bottom: 6px; position: sticky; top: 0; background: #f8f5ff; z-index: 1; padding-top: 4px; }
     .panel-title { flex: 1; font-size: 20px; font-weight: 800; color: #1a1a2e; }
-
-    .back-btn {
-      width: 38px;
-      height: 38px;
-      background: #fff;
-      border: none;
-      border-radius: 50%;
-      font-size: 18px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #7c3aed;
-      touch-action: manipulation;
-      flex-shrink: 0;
-      box-shadow: 0 2px 10px rgba(124,58,237,0.12);
-    }
+    .back-btn { width: 38px; height: 38px; background: #fff; border: none; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #7c3aed; touch-action: manipulation; flex-shrink: 0; box-shadow: 0 2px 10px rgba(124,58,237,0.12); }
 
     /* Settings Details */
     .section-label { font-size: 11px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.12em; margin: 22px 0 10px 4px; }
     .cat-row { background: #fff; border-radius: 18px; padding: 14px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 12px rgba(124,58,237,0.08); }
-    .cat-swatch { width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; touch-action: manipulation; }
+    .cat-swatch { width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; }
     .cat-swatch-hint { font-size: 9px; color: #a78bfa; text-align: center; margin-top: 4px; line-height: 1.2; }
     .color-field { display: flex; gap: 8px; align-items: center; }
     .color-picker { width: 42px; height: 36px; border: none; border-radius: 10px; padding: 2px 3px; cursor: pointer; background: #f3f0ff; flex-shrink: 0; -webkit-appearance: none; outline: none; }
-    .color-hex { font-family: 'SF Mono', 'Menlo', monospace; font-size: 14px; letter-spacing: 0.04em; }
+    .color-hex { font-family: 'SF Mono', Menlo, monospace; font-size: 14px; letter-spacing: 0.04em; }
     .cat-fields { flex: 1; display: flex; flex-direction: column; gap: 7px; }
     .field-group { display: flex; flex-direction: column; gap: 3px; }
     .field-label { font-size: 10px; color: #a78bfa; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
     .field-input { background: #f3f0ff; border: none; border-radius: 10px; padding: 9px 11px; color: #1a1a2e; font-size: 15px; font-family: inherit; outline: none; width: 100%; user-select: text; -webkit-appearance: none; transition: background 0.15s; }
     .field-input:focus { background: #ede9fe; }
-    .field-input::placeholder { color: #c4b5fd; }
-    .del-btn { width: 30px; height: 30px; background: #fee2e2; border: none; border-radius: 50%; color: #f87171; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 10px; touch-action: manipulation; }
+    .del-btn { width: 30px; height: 30px; background: #fee2e2; border: none; border-radius: 50%; color: #f87171; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 10px; }
     .daily-hint { font-size: 12px; color: #a78bfa; margin: -4px 0 10px 2px; }
     .daily-row { background: #fff; border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 12px rgba(124,58,237,0.08); }
-    .daily-cat-select { background: #f3f0ff; border: none; border-radius: 10px; padding: 8px 10px; color: #1a1a2e; font-size: 14px; font-family: inherit; outline: none; flex-shrink: 0; -webkit-appearance: none; appearance: none; }
-    .daily-del-btn { width: 28px; height: 28px; background: #fee2e2; border: none; border-radius: 50%; color: #f87171; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; touch-action: manipulation; }
-    #add-cat-btn { width: 100%; padding: 15px; background: transparent; border: 2px dashed #c4b5fd; border-radius: 18px; color: #a78bfa; font-size: 15px; font-weight: 600; cursor: pointer; touch-action: manipulation; margin-top: 2px; }
-    #add-cat-btn:active { border-color: #7c3aed; color: #7c3aed; }
+    .daily-cat-select { background: #f3f0ff; border: none; border-radius: 10px; padding: 8px 10px; color: #1a1a2e; font-size: 14px; font-family: inherit; outline: none; flex-shrink: 0; appearance: none; -webkit-appearance: none; }
+    .daily-del-btn { width: 28px; height: 28px; background: #fee2e2; border: none; border-radius: 50%; color: #f87171; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    #add-cat-btn { width: 100%; padding: 15px; background: transparent; border: 2px dashed #c4b5fd; border-radius: 18px; color: #a78bfa; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 2px; }
     .toggle-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 14px; padding: 15px 16px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(124,58,237,0.07); }
     .toggle-label { font-size: 15px; color: #1a1a2e; font-weight: 500; }
-    .toggle { width: 50px; height: 28px; background: #e0d9f7; border-radius: 14px; border: none; position: relative; cursor: pointer; touch-action: manipulation; transition: background 0.2s; flex-shrink: 0; }
+    .toggle { width: 50px; height: 28px; background: #e0d9f7; border-radius: 14px; border: none; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
     .toggle.on { background: #22c55e; }
     .toggle::after { content: ''; position: absolute; width: 22px; height: 22px; background: #fff; border-radius: 50%; top: 3px; left: 3px; transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
     .toggle.on::after { transform: translateX(22px); }
     .webhook-hint { font-size: 12px; color: #7c6aad; background: #f3f0ff; border-radius: 12px; padding: 12px 14px; margin-top: -2px; line-height: 1.6; border-left: 3px solid #a78bfa; }
-    #save-btn { width: 100%; padding: 17px; background: linear-gradient(135deg, #7c3aed, #6d28d9); border: none; border-radius: 18px; color: #fff; font-size: 17px; font-weight: 800; cursor: pointer; touch-action: manipulation; margin-top: 28px; box-shadow: 0 6px 24px rgba(124,58,237,0.35); }
+    #save-btn { width: 100%; padding: 17px; background: linear-gradient(135deg, #7c3aed, #6d28d9); border: none; border-radius: 18px; color: #fff; font-size: 17px; font-weight: 800; cursor: pointer; margin-top: 28px; box-shadow: 0 6px 24px rgba(124,58,237,0.35); }
 
     /* History Details */
     .h-item { background: #fff; border-radius: 16px; padding: 12px 13px; margin-bottom: 8px; display: flex; gap: 10px; align-items: flex-start; box-shadow: 0 2px 12px rgba(124,58,237,0.07); }
     .h-badge { width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; }
     .h-body { flex: 1; min-width: 0; }
     .h-text { font-size: 14px; color: #1a1a2e; line-height: 1.45; word-break: break-all; user-select: text; }
-    .h-text.empty { color: #c4b5fd; font-style: italic; }
     .h-meta { font-size: 11px; color: #a78bfa; margin-top: 4px; font-weight: 500; }
     .h-action-btns { display: flex; flex-direction: column; gap: 4px; }
     .h-btn-small { width: 30px; height: 30px; border: none; border-radius: 9px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; touch-action: manipulation; }
@@ -409,7 +320,7 @@
     /* Sync Details */
     .sync-box { background: #fff; border-radius: 18px; padding: 16px; box-shadow: 0 2px 12px rgba(124,58,237,0.08); display: flex; flex-direction: column; gap: 10px; }
     .sync-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .sync-btn { padding: 10px 20px; background: #7c3aed; border: none; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+    .sync-btn { padding: 10px 20px; background: #7c3aed; border: none; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
     .sync-btn.secondary { background: #f3f0ff; color: #7c3aed; }
     #sync-status { font-size: 12px; color: #a78bfa; flex: 1; text-align: right; min-width: 0; }
     .sync-hint { font-size: 11px; color: #7c6aad; background: #f3f0ff; border-radius: 10px; padding: 10px 12px; line-height: 1.7; border-left: 3px solid #c4b5fd; }
@@ -427,7 +338,7 @@
     .filter-pill { flex-shrink: 0; padding: 7px 16px; background: #fff; border: 2px solid #e8e0ff; border-radius: 50px; font-size: 13px; font-weight: 600; color: #7c6aad; cursor: pointer; white-space: nowrap; font-family: inherit; }
     .filter-pill.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
 
-    .h-check { width: 22px; height: 22px; min-width: 22px; border-radius: 50%; border: 2px solid #d4c8f7; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; align-self: center; flex-shrink: 0; }
+    .h-check { width: 22px; height: 22px; min-width: 22px; border-radius: 50%; border: 2px solid #d4c8f7; background: transparent; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; align-self: center; flex-shrink: 0; }
     .h-check.checked { background: #22c55e; border-color: #22c55e; }
     .h-item.done { background: #faf8ff; }
     .h-item.done .h-text { text-decoration: line-through; color: #b0a8cc; }
@@ -446,25 +357,37 @@
 
   <div id="canvas-container"></div>
 
-  <div id="folder-area" role="group" aria-label="分類フォルダ"></div>
+  <div id="folder-area">
+    <div class="folder-box" id="folder-archive">
+      <span class="folder-emoji">📥</span>
+      <span class="folder-label">アーカイブ</span>
+      <span class="folder-hint">完了（裏へ退避）</span>
+    </div>
+    <div class="folder-box" id="folder-later">
+      <span class="folder-emoji">⏳</span>
+      <span class="folder-label">あとで</span>
+      <span class="folder-hint">Wクリックで復元</span>
+    </div>
+    <div class="folder-box" id="folder-trash">
+      <span class="folder-emoji">🗑️</span>
+      <span class="folder-label">ゴミ箱</span>
+      <span class="folder-hint">完全に削除</span>
+    </div>
+  </div>
 </div>
 
 <div id="input-modal" role="dialog" aria-modal="true">
   <div id="input-card">
     <textarea id="memo-input" placeholder="思いついたこと、ここに…" rows="4" autocomplete="off" autocorrect="on" autocapitalize="sentences" spellcheck="true"></textarea>
+    
+    <div class="cat-selector-label">カテゴリを選択（色＆レーン自動設定）</div>
+    <div id="modal-cat-pickers"></div>
+
     <div class="modal-actions">
       <button class="modal-btn cancel" id="input-cancel-btn">閉じる</button>
       <button class="modal-btn primary" id="input-submit-btn">付箋を貼る</button>
     </div>
   </div>
-</div>
-
-<div id="success" role="status" aria-live="polite">
-  <div id="success-ring">✓</div>
-  <div id="success-label">分類しました</div>
-  <div id="success-preview"></div>
-  <button id="success-line-btn">🟢 LINEで送る</button>
-  <div id="success-tap-hint">タップして閉じる</div>
 </div>
 
 <div id="settings-panel" class="panel" role="dialog" aria-label="設定">
@@ -478,7 +401,7 @@
   <button id="add-cat-btn">＋ カテゴリを追加</button>
 
   <div class="section-label">📅 毎日追加</div>
-  <div class="daily-hint">起動時にその日がまだなければキャンバスに自動追加します</div>
+  <div class="daily-hint">起動時に自動でキャンバスへ出現させます</div>
   <div id="daily-settings-list"></div>
   <button id="add-daily-btn">＋ 追加</button>
 
@@ -507,16 +430,6 @@
       <button class="sync-btn secondary" id="sync-reset-btn" title="新規Gist作成">↺ リセット</button>
       <span id="sync-status">未設定</span>
     </div>
-    <div class="sync-hint">
-      <strong>初回セットアップ：</strong><br>
-      1. <a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank" style="color:#7c3aed">GitHubトークン発行画面</a> で <code>gist</code> スコープを付与してトークンを生成。<br>
-      2. 貼り付けて「↑ 送信」すると自動で新しい同期用Gistが作られます。
-    </div>
-  </div>
-
-  <div class="section-label">Webhook について</div>
-  <div class="webhook-hint">
-    カテゴリ毎にWebhookを設定可能。スワイプ吸い込みと同時にJSON形式 <code>{"text":"…","category":"…"}</code> がPOST送信されます。
   </div>
 
   <button id="save-btn">✓ 保存する</button>
@@ -557,29 +470,26 @@ const DEFAULT_CATS = [
 ];
 
 // ── State ────────────────────────────────────────────────────────────────────
-let cats        = JSON.parse(localStorage.getItem('memo_cats') || 'null') || deepCopy(DEFAULT_CATS);
-let history     = JSON.parse(localStorage.getItem('memo_history') || '[]');
-let prefs       = JSON.parse(localStorage.getItem('memo_prefs') || '{"vib":true}');
-let dailyItems  = JSON.parse(localStorage.getItem('memo_daily') || '[]');
-let editCats    = [];
+let cats          = JSON.parse(localStorage.getItem('memo_cats') || 'null') || deepCopy(DEFAULT_CATS);
+let history       = JSON.parse(localStorage.getItem('memo_history') || '[]');
+let prefs         = JSON.parse(localStorage.getItem('memo_prefs') || '{"vib":true}');
+let dailyItems    = JSON.parse(localStorage.getItem('memo_daily') || '[]');
+let selectedCatId = cats[0]?.id || ''; // モーダル内の現在選択カテゴリ
+let editCats      = [];
 let editDailyItems = [];
-let historyFilter = { done: 'all', catId: 'all' };
+let historyFilter = { done: 'all' };
 
 function deepCopy(x) { return JSON.parse(JSON.stringify(x)); }
 
 // ── DOM refs ─────────────────────────────────────────────────────────────────
 const canvasContainer = document.getElementById('canvas-container');
-const folderArea     = document.getElementById('folder-area');
 const inputModal     = document.getElementById('input-modal');
 const memoInput      = document.getElementById('memo-input');
+const modalCatPickers= document.getElementById('modal-cat-pickers');
 const addTriggerBtn  = document.getElementById('add-trigger-btn');
 const inputCancelBtn = document.getElementById('input-cancel-btn');
 const inputSubmitBtn = document.getElementById('input-submit-btn');
 
-const successEl      = document.getElementById('success');
-const successLabel   = document.getElementById('success-label');
-const successPreview = document.getElementById('success-preview');
-const successLineBtn = document.getElementById('success-line-btn');
 const settingsPanel  = document.getElementById('settings-panel');
 const historyPanel   = document.getElementById('history-panel');
 const vibToggle      = document.getElementById('vib-toggle');
@@ -587,46 +497,30 @@ const catSettingsList= document.getElementById('cat-settings-list');
 const historyList    = document.getElementById('history-list');
 const historyFiltersEl = document.getElementById('history-filters');
 
-// ── Render Canvas & Folders ──────────────────────────────────────────────────
-function renderCanvasAndFolders() {
-  // 1. フォルダ(吸い込み領域)の生成
-  folderArea.innerHTML = '';
-  cats.forEach(cat => {
-    const fBox = document.createElement('div');
-    fBox.className = 'folder-box';
-    fBox.dataset.catId = cat.id;
-    fBox.style.borderBottom = `4px solid ${cat.color || '#7c3aed'}`;
-    fBox.innerHTML = `
-      <span class="folder-emoji">${esc(cat.emoji)}</span>
-      <span class="folder-label">${esc(cat.label)}</span>
-    `;
-    folderArea.appendChild(fBox);
-  });
-
-  // 2. キャンバス上の付箋の描画
+// ── Render Canvas ────────────────────────────────────────────────────────────
+function renderCanvas() {
   canvasContainer.innerHTML = '';
   
-  // 「キャンバスに残るべきメモ」＝catIdが未設定("unclassified"等) かつ 未完了のもの
-  const activeNotes = history.filter(item => !item.catId || item.catId === 'unclassified');
+  // キャンバスに表示すべき付箋：doneがfalse（アーカイブ・ゴミ箱入りしていない）かつ later（あとで）がfalseのもの
+  const activeNotes = history.filter(item => !item.done && !item.later);
 
   if (activeNotes.length === 0) {
     const hint = document.createElement('div');
-    hint.style.cssText = 'position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#c4b5fd; font-size:14px; font-weight:600; text-align:center; padding:20px; pointer-events:none; line-height:1.6;';
-    hint.innerHTML = 'キャンバスに付箋はありません<br>右上「＋」ボタンから新しいメモを作成！';
+    hint.style.cssText = 'position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#c4b5fd; font-size:13px; font-weight:600; text-align:center; padding:20px; pointer-events:none; line-height:1.6;';
+    hint.innerHTML = 'キャンバスはピカピカです！<br>右上「＋」ボタンから新しいメモを追加、<br>または「あとで」フォルダをWクリックで復元。';
     canvasContainer.appendChild(hint);
     return;
   }
 
-  // コンテナのサイズ取得（座標の安全圏維持のため）
   const rect = canvasContainer.getBoundingClientRect();
   const cWidth = rect.width || window.innerWidth - 24;
   const cHeight = rect.height || 400;
 
   activeNotes.forEach(item => {
-    // 座標の初期化保護
+    // もし座標がない場合はレーンに基づいて初期X座標とランダムY座標を設定
     if (item.x === undefined || item.y === undefined) {
-      item.x = Math.max(10, Math.floor(Math.random() * (cWidth - 150)));
-      item.y = Math.max(10, Math.floor(Math.random() * (cHeight - 120)));
+      const { x, y } = calculateInitialPosition(item.catId, cWidth, cHeight);
+      item.x = x; item.y = y;
     }
 
     const note = document.createElement('div');
@@ -634,20 +528,18 @@ function renderCanvasAndFolders() {
     note.dataset.id = item.id;
     note.style.left = `${item.x}px`;
     note.style.top = `${item.y}px`;
-
-    // 毎日追加などで割り当てがある場合は色を変える
-    if (item.catColor) {
-      note.style.borderLeftColor = item.catColor;
+    
+    // カテゴリごとのベースカラーを左ボーダーに100%適用して目が滑らないように
+    const catData = cats.find(c => c.id === item.catId);
+    if (catData && catData.color) {
+      note.style.borderLeftColor = catData.color;
     }
-
-    const d = new Date(item.ts);
-    const timeStr = d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
 
     note.innerHTML = `
       <div class="sticky-note-text">${esc(item.text || '(空メモ)')}</div>
       <div class="sticky-note-meta">
-        <span>🕒 ${esc(timeStr)}</span>
-        <span style="opacity:0.7;">📌</span>
+        <span>${esc(item.catEmoji || '📌')} ${esc(item.catLabel || '未分類')}</span>
+        <span>🕒 ${esc(new Date(item.ts).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }))}</span>
       </div>
     `;
 
@@ -656,16 +548,28 @@ function renderCanvasAndFolders() {
   });
 }
 
-// ── Touch Drag Logic (iPhone最適化) ──────────────────────────────────────────
+// レーン（X座標の自動振り分け）計算ロジック
+function calculateInitialPosition(catId, canvasWidth, canvasHeight) {
+  const catIndex = cats.findIndex(c => c.id === catId);
+  const totalCats = cats.length || 1;
+  const safeIndex = catIndex >= 0 ? catIndex : 0;
+  
+  // キャンバスの横幅をカテゴリ数で等分割してレーンを作る
+  const laneWidth = (canvasWidth - 150) / totalCats; 
+  const targetX = Math.floor(10 + (safeIndex * laneWidth) + (Math.random() * (laneWidth * 0.4)));
+  const targetY = Math.max(15, Math.floor(20 + Math.random() * (canvasHeight - 150)));
+  
+  return { x: targetX, y: targetY };
+}
+
+// ── Touch Drag Logic (iPhone用スワイプ最適化) ──────────────────────────────────
 function setupDragElement(el, item) {
   let startX = 0, startY = 0;
   let initialLeft = 0, initialTop = 0;
-  let foldersData = [];
+  let targetsData = [];
 
   el.addEventListener('touchstart', (e) => {
-    // 複数タッチは無視
     if (e.touches.length > 1) return;
-    
     el.classList.add('dragging');
     const touch = e.touches[0];
     startX = touch.clientX;
@@ -673,15 +577,12 @@ function setupDragElement(el, item) {
     initialLeft = parseInt(el.style.left, 10) || 0;
     initialTop = parseInt(el.style.top, 10) || 0;
 
-    // 分類フォルダの全当たり判定位置情報をキャッシュ
-    foldersData = [];
-    document.querySelectorAll('.folder-box').forEach(fb => {
-      foldersData.push({
-        element: fb,
-        rect: fb.getBoundingClientRect(),
-        catId: fb.dataset.catId
-      });
-    });
+    // 3大フォルダの判定エリア情報をキャッシュ
+    targetsData = [
+      { element: document.getElementById('folder-archive'), id: 'archive', rect: document.getElementById('folder-archive').getBoundingClientRect() },
+      { element: document.getElementById('folder-later'),   id: 'later',   rect: document.getElementById('folder-later').getBoundingClientRect() },
+      { element: document.getElementById('folder-trash'),   id: 'trash',   rect: document.getElementById('folder-trash').getBoundingClientRect() }
+    ];
 
     if (prefs.vib && navigator.vibrate) navigator.vibrate(8);
   }, { passive: true });
@@ -695,7 +596,6 @@ function setupDragElement(el, item) {
     let newLeft = initialLeft + dx;
     let newTop = initialTop + dy;
 
-    // キャンバス内での限界制限
     const cRect = canvasContainer.getBoundingClientRect();
     if (newLeft < 0) newLeft = 0;
     if (newLeft > cRect.width - 140) newLeft = cRect.width - 140;
@@ -705,16 +605,15 @@ function setupDragElement(el, item) {
     el.style.left = `${newLeft}px`;
     el.style.top = `${newTop}px`;
 
-    // 現在の指の位置がフォルダ領域に入っているかリアルタイム判定
     const currentX = touch.clientX;
     const currentY = touch.clientY;
     
-    foldersData.forEach(folder => {
-      if (currentX >= folder.rect.left && currentX <= folder.rect.right &&
-          currentY >= folder.rect.top && currentY <= folder.rect.bottom) {
-        folder.element.classList.add('drag-over');
+    targetsData.forEach(tgt => {
+      if (currentX >= tgt.rect.left && currentX <= tgt.rect.right &&
+          currentY >= tgt.rect.top && currentY <= tgt.rect.bottom) {
+        tgt.element.classList.add('drag-over');
       } else {
-        folder.element.classList.remove('drag-over');
+        tgt.element.classList.remove('drag-over');
       }
     });
   }, { passive: true });
@@ -722,99 +621,141 @@ function setupDragElement(el, item) {
   el.addEventListener('touchend', (e) => {
     el.classList.remove('dragging');
     
-    // 指が離れた時点の重なり情報をチェック
-    let matchedFolder = null;
-    foldersData.forEach(folder => {
-      if (folder.element.classList.contains('drag-over')) {
-        matchedFolder = folder;
-        folder.element.classList.remove('drag-over');
+    let matchedTarget = null;
+    targetsData.forEach(tgt => {
+      if (tgt.element.classList.contains('drag-over')) {
+        matchedTarget = tgt;
+        tgt.element.classList.remove('drag-over');
       }
     });
 
-    const finalLeft = parseInt(el.style.left, 10) || 0;
-    const finalTop = parseInt(el.style.top, 10) || 0;
-
-    if (matchedFolder) {
-      // 1. 吸い込み分類処理
-      classifyNote(item.id, matchedFolder.catId);
+    if (matchedTarget) {
+      // ポップアップを挟まず即座に処理する（爆速テンポ）
+      executeFolderAction(item.id, matchedTarget.id);
     } else {
-      // 2. 通常移動: 位置を記憶
+      // 通常の移動座標保存
       const found = history.find(h => h.id === item.id);
       if (found) {
-        found.x = finalLeft;
-        found.y = finalTop;
+        found.x = parseInt(el.style.left, 10);
+        found.y = parseInt(el.style.top, 10);
         localStorage.setItem('memo_history', JSON.stringify(history));
-        syncAuto(); // 位置変更も自動保存
+        syncAuto();
       }
     }
   });
 }
 
-// ── Classify Action (吸い込み・Webhook・バイブ) ───────────────────────────────
-async function classifyNote(itemId, catId) {
-  const targetCat = cats.find(c => c.id === catId);
+// ── 3大特殊フォルダアクション実行 ───────────────────────────────────────────────
+function executeFolderAction(itemId, actionType) {
   const item = history.find(h => h.id === itemId);
+  if (!item) return;
 
-  if (!targetCat || !item) return;
+  if (prefs.vib && navigator.vibrate) navigator.vibrate(20);
 
-  // データ構造の書き換え (既存ロジックと連動)
-  item.catId    = targetCat.id;
-  item.catLabel = targetCat.label;
-  item.catEmoji = targetCat.emoji;
-  item.catBg    = targetCat.color ? colorToBg(targetCat.color) : colorToBg('#7c3aed');
-  item.done     = true; // 分類された＝タスク完了・非表示
+  if (actionType === 'archive') {
+    // 1. アーカイブ（二度手間なし：事前選択されたカテゴリで裏の履歴に保存）
+    item.done = true;
+    item.later = false;
+    
+    // カテゴリに設定されたWebhookがあればキック
+    const targetCat = cats.find(c => c.id === item.catId);
+    if (targetCat && targetCat.webhook) {
+      fetch(targetCat.webhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: item.text ? `[${targetCat.label}] ${item.text}` : `[${targetCat.label}] (メモなし)`,
+          category: targetCat.label,
+          memo: item.text,
+          timestamp: item.ts,
+        }),
+      }).catch(() => {});
+    }
+  } 
+  else if (actionType === 'later') {
+    // 2. あとで（ホールド状態・キャンバスから一時退避）
+    item.done = false;
+    item.later = true;
+  } 
+  else if (actionType === 'trash') {
+    // 3. ゴミ箱（誤操作防止＆即時完全抹消）
+    history = history.filter(h => h.id !== itemId);
+  }
 
   localStorage.setItem('memo_history', JSON.stringify(history));
-
-  // バイブレーション
-  if (prefs.vib && navigator.vibrate) navigator.vibrate(28);
-
-  // Webhook送信処理
-  if (targetCat.webhook) {
-    fetch(targetCat.webhook, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text: item.text ? `[${targetCat.label}] ${item.text}` : `[${targetCat.label}] (メモなし)`,
-        category: targetCat.label,
-        memo: item.text,
-        timestamp: item.ts,
-      }),
-    }).catch(() => {});
-  }
-
-  // 成功モーダルの表示
-  successLabel.textContent = `${targetCat.emoji} ${targetCat.label} へ分類！`;
-  successPreview.textContent = item.text.length > 40 ? item.text.slice(0, 40) + '…' : item.text;
-
-  if (item.text) {
-    const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(item.text)}`;
-    successLineBtn.style.display = 'block';
-    successLineBtn.onclick = (e) => { e.stopPropagation(); window.open(lineUrl, '_blank'); };
-  } else {
-    successLineBtn.style.display = 'none';
-  }
-
-  successEl.classList.add('show');
-  clearTimeout(successTimer);
-  successTimer = setTimeout(() => {
-    successEl.classList.remove('show');
-  }, 1400);
-
-  // 再レンダリング & クラウド自動同期
-  renderCanvasAndFolders();
+  renderCanvas();
   syncAuto();
 }
 
-let successTimer = null;
-successEl.addEventListener('click', () => {
-  clearTimeout(successTimer);
-  successEl.classList.remove('show');
+// ── 「あとで」フォルダのダブルクリック（ダブルタップ）復元機能 ─────────────────────
+document.getElementById('folder-later').addEventListener('dblclick', () => {
+  restoreLaterItems();
+});
+// iPhone用にタッチイベントでのダブルタップも検知
+let lastTapTime = 0;
+document.getElementById('folder-later').addEventListener('touchend', (e) => {
+  const currentTime = new Date().getTime();
+  const tapLength = currentTime - lastTapTime;
+  if (tapLength < 300 && tapLength > 0) {
+    e.preventDefault();
+    restoreLaterItems();
+  }
+  lastTapTime = currentTime;
 });
 
-// ── Add New Memo Modal ───────────────────────────────────────────────────────
+function restoreLaterItems() {
+  const laterCount = history.filter(h => h.later).length;
+  if (laterCount === 0) return;
+
+  const rect = canvasContainer.getBoundingClientRect();
+  const cWidth = rect.width || window.innerWidth - 24;
+  const cHeight = rect.height || 400;
+
+  // 「あとで」に入っていたアイテムをすべてキャンバスに一瞬で湧き立たせる
+  history.forEach(item => {
+    if (item.later) {
+      item.later = false;
+      item.done = false;
+      // 位置を中央付近か新規レーンに綺麗に再計算
+      const pos = calculateInitialPosition(item.catId, cWidth, cHeight);
+      item.x = pos.x; item.y = pos.y;
+    }
+  });
+
+  localStorage.setItem('memo_history', JSON.stringify(history));
+  if (prefs.vib && navigator.vibrate) navigator.vibrate(35);
+  renderCanvas();
+  syncAuto();
+}
+
+
+// ── モーダル内カテゴリ選択UIの生成 ──────────────────────────────────────────────
+function renderModalCatPickers() {
+  modalCatPickers.innerHTML = '';
+  cats.forEach(cat => {
+    const chip = document.createElement('button');
+    chip.className = 'cat-chip';
+    if (cat.id === selectedCatId) {
+      chip.classList.add('selected');
+      chip.style.backgroundColor = cat.color || '#7c3aed';
+    }
+    chip.innerHTML = `<span>${esc(cat.emoji)}</span><span>${esc(cat.label)}</span>`;
+    chip.addEventListener('click', () => {
+      selectedCatId = cat.id;
+      renderModalCatPickers();
+    });
+    modalCatPickers.appendChild(chip);
+  });
+}
+
+// ── 新規メモ追加処理 ─────────────────────────────────────────────────────────
 addTriggerBtn.addEventListener('click', () => {
   memoInput.value = '';
+  // デフォルトで最初のカテゴリを選んでおく
+  if (cats.length && !cats.some(c => c.id === selectedCatId)) {
+    selectedCatId = cats[0].id;
+  }
+  renderModalCatPickers();
   inputModal.classList.add('open');
   setTimeout(() => memoInput.focus(), 250);
 });
@@ -826,22 +767,27 @@ inputCancelBtn.addEventListener('click', () => {
 
 inputSubmitBtn.addEventListener('click', () => {
   const text = memoInput.value.trim();
-  // 空文字でも付箋化は許可するが、一応空でも作成可能とする
+  const targetCat = cats.find(c => c.id === selectedCatId) || cats[0];
+
   const rect = canvasContainer.getBoundingClientRect();
   const cWidth = rect.width || window.innerWidth - 24;
   const cHeight = rect.height || 400;
 
+  // 事前にレーン座標を計算
+  const pos = calculateInitialPosition(targetCat?.id, cWidth, cHeight);
+
   const newItem = {
     id: Date.now() + '_' + Math.random().toString(36).slice(2),
     text: text,
-    catId: 'unclassified', // 初期は未分類
-    catLabel: '未分類',
-    catEmoji: '📌',
-    catBg: colorToBg('#7c3aed'),
+    catId: targetCat?.id || 'unclassified',
+    catLabel: targetCat?.label || '未分類',
+    catEmoji: targetCat?.emoji || '📌',
+    catBg: targetCat ? colorToBg(targetCat.color) : colorToBg('#7c3aed'),
     ts: new Date().toISOString(),
     done: false,
-    x: Math.max(15, Math.floor(Math.random() * (cWidth - 150))),
-    y: Math.max(15, Math.floor(Math.random() * (cHeight - 120)))
+    later: false,
+    x: pos.x,
+    y: pos.y
   };
 
   history.unshift(newItem);
@@ -853,70 +799,42 @@ inputSubmitBtn.addEventListener('click', () => {
 
   if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
 
-  renderCanvasAndFolders();
+  renderCanvas();
   syncAuto();
 });
 
 
 // ── Settings panel ────────────────────────────────────────────────────────────
 function openSettings() {
-  editCats = cats.map(c => ({
-    ...c,
-    color: c.color || extractColor(c.bg || ''),
-  }));
+  editCats = cats.map(c => ({ ...c, color: c.color || extractColor(c.bg || '') }));
   editDailyItems = deepCopy(dailyItems);
   renderCatSettings();
   renderDailyList();
   vibToggle.classList.toggle('on', prefs.vib);
   settingsPanel.classList.add('open');
 }
-
 function closeSettings() { settingsPanel.classList.remove('open'); }
 
 function renderCatSettings() {
   catSettingsList.innerHTML = '';
   editCats.forEach((cat, i) => {
-    const row = document.createElement('div');
-    row.className = 'cat-row';
+    const row = document.createElement('div'); row.className = 'cat-row';
+    const swatchWrap = document.createElement('div'); swatchWrap.style.cssText = 'flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:3px;';
+    const swatch = document.createElement('div'); swatch.className = 'cat-swatch'; swatch.style.background = colorToBg(cat.color || '#7c3aed'); swatch.textContent = cat.emoji;
+    swatchWrap.append(swatch, document.createElement('div'));
 
-    const swatchWrap = document.createElement('div');
-    swatchWrap.style.cssText = 'flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:3px;';
+    const fields = document.createElement('div'); fields.className = 'cat-fields';
+    fields.append(
+      makeField('絵文字', 'text', cat.emoji, '📌', 4, v => { editCats[i].emoji = v; swatch.textContent = v || '?'; }),
+      makeField('ラベル', 'text', cat.label, 'カテゴリ名', 12, v => { editCats[i].label = v; }),
+      makeColorField(cat.color, v => { editCats[i].color = v; swatch.style.background = colorToBg(v); }),
+      makeField('Webhook URL', 'url', cat.webhook, 'https://...', 300, v => { editCats[i].webhook = v; })
+    );
 
-    const swatch = document.createElement('div');
-    swatch.className = 'cat-swatch';
-    swatch.style.background = cat.bg || colorToBg(cat.color || '#7c3aed');
-    swatch.textContent = cat.emoji;
-
-    const swatchHint = document.createElement('div');
-    swatchHint.className = 'cat-swatch-hint';
-    swatchHint.textContent = '見本';
-
-    swatchWrap.append(swatch, swatchHint);
-
-    const fields = document.createElement('div');
-    fields.className = 'cat-fields';
-
-    const emojiField = makeField('絵文字', 'text', cat.emoji, '💡', 4, v => {
-      editCats[i].emoji = v; swatch.textContent = v || '?';
-    });
-    const labelField = makeField('ラベル', 'text', cat.label, 'カテゴリ名', 12, v => {
-      editCats[i].label = v;
-    });
-    const webhookField = makeField('Webhook URL', 'url', cat.webhook, 'https://...', 300, v => {
-      editCats[i].webhook = v;
-    });
-    const colorField = makeColorField(cat.color, v => {
-      editCats[i].color = v; swatch.style.background = colorToBg(v);
-    });
-
-    fields.append(emojiField, labelField, colorField, webhookField);
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'del-btn'; delBtn.textContent = '×';
+    const delBtn = document.createElement('button'); delBtn.className = 'del-btn'; delBtn.textContent = '×';
     delBtn.addEventListener('click', () => { editCats.splice(i, 1); renderCatSettings(); });
 
-    row.append(swatchWrap, fields, delBtn);
-    catSettingsList.appendChild(row);
+    row.append(swatchWrap, fields, delBtn); catSettingsList.appendChild(row);
   });
 }
 
@@ -929,61 +847,43 @@ function makeField(label, type, value, placeholder, maxLen, onChange) {
 }
 
 function makeColorField(color, onChange) {
-  const DEFAULTS = ['#059669','#18181b','#7c3aed','#ea580c','#db2777','#0ea5e9','#d97706','#dc2626'];
+  const DEFAULTS = ['#059669','#18181b','#7c3aed','#ea580c','#db2777','#0ea5e9','#d97706'];
   const safeColor = isValidHex(color) ? color : '#7c3aed';
   const wrap = document.createElement('div'); wrap.className = 'field-group';
-  const lbl = document.createElement('div'); lbl.className = 'field-label'; lbl.textContent = 'カラー';
+  const lbl = document.createElement('div'); lbl.className = 'field-label'; lbl.textContent = 'ベースカラー';
   const row = document.createElement('div'); row.className = 'color-field';
   const picker = document.createElement('input'); picker.type = 'color'; picker.className = 'color-picker'; picker.value = safeColor;
   const text = document.createElement('input'); text.type = 'text'; text.className = 'field-input color-hex'; text.value = safeColor; text.maxLength = 7;
-
   picker.addEventListener('input', () => { text.value = picker.value; onChange(picker.value); });
-  text.addEventListener('input', () => {
-    let v = text.value.trim(); if (!v.startsWith('#')) v = '#' + v;
-    if (isValidHex(v)) { picker.value = v; onChange(v); }
-  });
-
-  const presets = document.createElement('div'); presets.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;';
+  text.addEventListener('input', () => { let v = text.value.trim(); if (!v.startsWith('#')) v = '#' + v; if (isValidHex(v)) { picker.value = v; onChange(v); } });
+  const presets = document.createElement('div'); presets.style.cssText = 'display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;';
   DEFAULTS.forEach(c => {
-    const dot = document.createElement('button'); dot.type = 'button';
-    dot.style.cssText = `width:22px;height:22px;border-radius:50%;background:${c};border:2px solid transparent;cursor:pointer;`;
-    dot.addEventListener('click', () => { picker.value = c; text.value = c; onChange(c); });
-    presets.appendChild(dot);
+    const dot = document.createElement('button'); dot.type = 'button'; dot.style.cssText = `width:20px;height:20px;border-radius:50%;background:${c};border:none;cursor:pointer;`;
+    dot.addEventListener('click', () => { picker.value = c; text.value = c; onChange(c); }); presets.appendChild(dot);
   });
   row.append(picker, text); wrap.append(lbl, row, presets); return wrap;
 }
 
 document.getElementById('add-cat-btn').addEventListener('click', () => {
-  const PRESET_COLORS = ['#059669','#18181b','#7c3aed','#ea580c','#db2777'];
-  editCats.push({ id: 'cat_' + Date.now(), label: '新規枠', emoji: '📌', color: PRESET_COLORS[editCats.length % PRESET_COLORS.length], webhook: '' });
+  editCats.push({ id: 'cat_' + Date.now(), label: '新しい枠', emoji: '📌', color: '#7c3aed', webhook: '' });
   renderCatSettings();
 });
 
-// ── Daily auto-add ─────────────────────────────────────────────────────────────
+// ── Daily auto-add (毎日追加・出現機能) ────────────────────────────────────────
 function renderDailyList() {
   const list = document.getElementById('daily-settings-list'); list.innerHTML = '';
   editDailyItems.forEach((item, i) => {
     const row = document.createElement('div'); row.className = 'daily-row';
     const sel = document.createElement('select'); sel.className = 'daily-cat-select';
-    
-    // 未分類枠の選択肢
-    const optUn = document.createElement('option'); optUn.value = 'unclassified'; optUn.textContent = '📌 キャンバス(未分類)';
-    if(item.catId === 'unclassified') optUn.selected = true;
-    sel.appendChild(optUn);
-
     editCats.forEach(c => {
       const opt = document.createElement('option'); opt.value = c.id; opt.textContent = `${c.emoji} ${c.label}`;
-      if (c.id === item.catId) opt.selected = true;
-      sel.appendChild(opt);
+      if (c.id === item.catId) opt.selected = true; sel.appendChild(opt);
     });
     sel.addEventListener('change', () => { editDailyItems[i].catId = sel.value; });
-
     const input = document.createElement('input'); input.type = 'text'; input.className = 'field-input'; input.style.flex = '1'; input.value = item.content || '';
     input.addEventListener('input', () => { editDailyItems[i].content = input.value; });
-
     const del = document.createElement('button'); del.className = 'daily-del-btn'; del.textContent = '×';
     del.addEventListener('click', () => { editDailyItems.splice(i, 1); renderDailyList(); });
-
     row.append(sel, input, del); list.appendChild(row);
   });
 }
@@ -995,39 +895,37 @@ function checkDailyItems() {
   
   const baseTs = Date.now();
   let added = 0;
-  
   const rect = canvasContainer.getBoundingClientRect();
   const cWidth = rect.width || window.innerWidth - 24;
   const cHeight = rect.height || 400;
 
   dailyItems.forEach((item, i) => {
     if (!item.content?.trim()) return;
-    
-    let targetCat = cats.find(c => c.id === item.catId);
-    
+    const targetCat = cats.find(c => c.id === item.catId) || cats[0];
+    const pos = calculateInitialPosition(targetCat?.id, cWidth, cHeight);
+
     history.unshift({
       id: `daily-${baseTs}-${i}`,
-      catId: targetCat ? targetCat.id : 'unclassified',
-      catLabel: targetCat ? targetCat.label : '未分類',
-      catEmoji: targetCat ? targetCat.emoji : '📌',
-      catBg: targetCat ? (targetCat.color ? colorToBg(targetCat.color) : colorToBg('#7c3aed')) : colorToBg('#7c3aed'),
-      catColor: targetCat ? targetCat.color : '#a78bfa',
+      catId: targetCat?.id || 'unclassified',
+      catLabel: targetCat?.label || '未分類',
+      catEmoji: targetCat?.emoji || '📌',
+      catBg: targetCat ? colorToBg(targetCat.color) : colorToBg('#7c3aed'),
       text: item.content.trim(),
-      done: targetCat ? true : false, // カテゴリ指定ありなら完了扱い、未分類ならキャンバスに出現
+      done: false,
+      later: false,
       ts: new Date(baseTs + i).toISOString(),
-      x: Math.max(15, Math.floor(Math.random() * (cWidth - 150))),
-      y: Math.max(15, Math.floor(Math.random() * (cHeight - 120)))
+      x: pos.x, y: pos.y
     });
     added++;
   });
   if (!added) return;
   localStorage.setItem('memo_history', JSON.stringify(history));
-  renderCanvasAndFolders();
+  renderCanvas();
   syncAuto();
 }
 
 document.getElementById('add-daily-btn').addEventListener('click', () => {
-  editDailyItems.push({ id: `d-${Date.now()}`, catId: 'unclassified', content: '' });
+  editDailyItems.push({ id: `d-${Date.now()}`, catId: editCats[0]?.id || '', content: '' });
   renderDailyList();
 });
 
@@ -1040,7 +938,7 @@ document.getElementById('save-btn').addEventListener('click', () => {
   localStorage.setItem('memo_prefs',  JSON.stringify(prefs));
   localStorage.setItem('memo_daily',  JSON.stringify(dailyItems));
   localStorage.setItem('memo_daily_saved', new Date().toISOString());
-  renderCanvasAndFolders();
+  renderCanvas();
   closeSettings();
   checkDailyItems();
   syncAuto();
@@ -1049,17 +947,16 @@ document.getElementById('save-btn').addEventListener('click', () => {
 document.getElementById('settings-btn').addEventListener('click', openSettings);
 document.getElementById('settings-back').addEventListener('click', closeSettings);
 
-// ── History Panel & Canvas Restore Logic ──────────────────────────────────────
+// ── History Panel & Archive Management ────────────────────────────────────────
 function openHistory() { renderHistory(); historyPanel.classList.add('open'); if (syncConfig.token && syncConfig.gistId && !syncDebounceTimer) { syncPull().then(ok => { if (ok) renderHistory(); }); } }
-function closeHistory() { historyPanel.classList.remove('open'); renderCanvasAndFolders(); } // 戻る時にキャンバス再描画
+function closeHistory() { historyPanel.classList.remove('open'); renderCanvas(); }
 
 function renderHistory() {
   historyFiltersEl.innerHTML = '';
   if (history.length) {
-    // ステータスフィルター
-    const doneSection = document.createElement('div'); doneSection.className = 'filter-section'; doneSection.innerHTML = '<div class="filter-label">ステータス</div>';
+    const doneSection = document.createElement('div'); doneSection.className = 'filter-section'; doneSection.innerHTML = '<div class="filter-label">状態フィルター</div>';
     const doneRow = document.createElement('div'); doneRow.className = 'filter-row';
-    [['all','全て'], ['undone','キャンバス上 ○'], ['done','分類済み ✓']].forEach(([val, label]) => {
+    [['all','全て'], ['canvas','キャンバス上'], ['archive','アーカイブ済み'], ['later','あとで保管中']].forEach(([val, label]) => {
       const pill = document.createElement('button'); pill.className = 'filter-pill' + (historyFilter.done === val ? ' active' : ''); pill.textContent = label;
       pill.addEventListener('click', () => { historyFilter.done = val; renderHistory(); });
       doneRow.appendChild(pill);
@@ -1067,37 +964,32 @@ function renderHistory() {
     doneSection.appendChild(doneRow); historyFiltersEl.appendChild(doneSection);
   }
 
-  if (!history.length) {
-    historyList.innerHTML = '<div class="h-empty">履歴は空です</div>'; return;
-  }
+  if (!history.length) { historyList.innerHTML = '<div class="h-empty">履歴がありません</div>'; return; }
 
   let filtered = history;
-  if (historyFilter.done === 'done')   filtered = filtered.filter(h => h.done);
-  if (historyFilter.done === 'undone') filtered = filtered.filter(h => !h.done);
+  if (historyFilter.done === 'canvas')  filtered = filtered.filter(h => !h.done && !h.later);
+  if (historyFilter.done === 'archive') filtered = filtered.filter(h => h.done);
+  if (historyFilter.done === 'later')   filtered = filtered.filter(h => h.later);
 
   let html = ''; let lastDate = '';
   filtered.forEach(item => {
     const d = new Date(item.ts);
     const dateStr = d.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' });
-    const timeStr = d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
     if (dateStr !== lastDate) { html += `<div class="date-sep">${esc(dateStr)}</div>`; lastDate = dateStr; }
     
-    const dispText = item.text || '(テキストなし)';
-    const doneClass = item.done ? ' done' : '';
-    
-    // 【新設】分類済み(item.done==true)なら「キャンバスに戻す」ボタンを表示
-    const restoreBtnHtml = item.done ? `<button class="h-btn-small h-restore" data-id="${esc(item.id)}" title="キャンバスに戻す">↩️</button>` : '';
+    const isDone = item.done;
+    const stateBadge = item.later ? '⏳ あとで' : (isDone ? '✓ 分類済' : '○ キャンバス');
 
     html += `
-      <div class="h-item${doneClass}">
-        <button class="h-check${item.done ? ' checked' : ''}" data-id="${esc(item.id)}">${item.done ? '✓' : ''}</button>
-        <div class="h-badge" style="background:${esc(item.catBg||'#7c3aed')}">${esc(item.catEmoji||'📌')}</div>
+      <div class="h-item ${isDone ? 'done' : ''}">
+        <div class="h-check ${isDone ? 'checked' : ''}">✓</div>
+        <div class="h-badge" style="background:${esc(item.catBg || '#7c3aed')}">${esc(item.catEmoji || '📌')}</div>
         <div class="h-body">
-          <div class="h-text">${esc(dispText)}</div>
-          <div class="h-meta">${esc(item.catLabel||'未分類')} · ${esc(timeStr)}</div>
+          <div class="h-text">${esc(item.text || '(空メモ)')}</div>
+          <div class="h-meta">${esc(item.catLabel || '未分類')} · ${esc(stateBadge)}</div>
         </div>
         <div class="h-action-btns">
-          ${restoreBtnHtml}
+          <button class="h-btn-small h-restore" data-id="${esc(item.id)}" title="キャンバスに戻す">↩️</button>
           ${item.text ? `<button class="h-btn-small h-copy" data-id="${esc(item.id)}">📋</button>` : ''}
           <button class="h-btn-small h-del" data-id="${esc(item.id)}">🗑️</button>
         </div>
@@ -1105,36 +997,18 @@ function renderHistory() {
   });
   historyList.innerHTML = html;
 
-  // リスナー紐付け
-  historyList.querySelectorAll('.h-check').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const found = history.find(h => h.id === btn.dataset.id);
-      if (found) {
-        found.done = !found.done;
-        if(!found.done) { found.catId = 'unclassified'; found.catLabel = '未分類'; found.catEmoji = '📌'; }
-        localStorage.setItem('memo_history', JSON.stringify(history));
-        renderHistory(); syncAuto();
-      }
-    });
-  });
-
-  // キャンバスに復元するアクション
+  // キャンバスへ明示的に復元するロジック
   historyList.querySelectorAll('.h-restore').forEach(btn => {
     btn.addEventListener('click', () => {
       const found = history.find(h => h.id === btn.dataset.id);
       if (found) {
         found.done = false;
-        found.catId = 'unclassified';
-        found.catLabel = '未分類';
-        found.catEmoji = '📌';
-        found.catBg = colorToBg('#7c3aed');
-        // 中央付近にリセット
+        found.later = false;
+        // 座標を現在のキャンバスレーンに再計算
         const rect = canvasContainer.getBoundingClientRect();
-        found.x = Math.max(20, Math.floor((rect.width || 300) / 2 - 70));
-        found.y = Math.max(20, Math.floor((rect.height || 400) / 2 - 50));
-        
+        const pos = calculateInitialPosition(found.catId, rect.width || 300, rect.height || 400);
+        found.x = pos.x; found.y = pos.y;
         localStorage.setItem('memo_history', JSON.stringify(history));
-        if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
         renderHistory(); syncAuto();
       }
     });
@@ -1161,26 +1035,18 @@ document.getElementById('history-back').addEventListener('click', closeHistory);
 
 document.getElementById('export-btn').addEventListener('click', () => {
   const done = history.filter(h => h.done);
-  if (!done.length) { alert('分類済みのアイテムがありません'); return; }
+  if (!done.length) { alert('アーカイブ済みのアイテムがありません'); return; }
   const rows = [['日時', 'カテゴリ', '内容']];
-  done.forEach(h => {
-    const dt = new Date(h.ts).toLocaleString('ja-JP');
-    rows.push([dt, h.catLabel || '', `"${(h.text || '').replace(/"/g, '""')}"`]);
-  });
+  done.forEach(h => { rows.push([new Date(h.ts).toLocaleString('ja-JP'), h.catLabel || '', `"${(h.text || '').replace(/"/g, '""')}"`]); });
   const csv = '﻿' + rows.map(r => r.join(',')).join('\r\n');
-  const fileName = `memo-archive-${new Date().toISOString().slice(0,10)}.csv`;
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  try {
-    const file = new File([blob], fileName, { type: 'text/csv' });
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: 'メモ書き出し' }); return; }
-  } catch (_) {}
-  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = fileName; a.click(); URL.revokeObjectURL(url);
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `memo-archive-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
 });
 
 document.getElementById('clear-btn').addEventListener('click', () => {
   const doneCount = history.filter(h => h.done).length;
-  if (!doneCount) { alert('削除対象の分類済みメモがありません'); return; }
-  if (confirm(`分類済み ${doneCount} 件を完全に消去しますか？`)) {
+  if (!doneCount) { alert('削除対象のアーカイブがありません'); return; }
+  if (confirm(`アーカイブ済み ${doneCount} 件を履歴から完全に消去しますか？`)) {
     history = history.filter(h => !h.done); localStorage.setItem('memo_history', JSON.stringify(history)); renderHistory(); syncAuto();
   }
 });
@@ -1192,9 +1058,9 @@ function setupPWA() {
   const c = document.createElement('canvas'); c.width = c.height = 512; const ctx = c.getContext('2d');
   const g = ctx.createLinearGradient(0, 0, 512, 512); g.addColorStop(0, '#7c3aed'); g.addColorStop(1, '#ec4899'); ctx.fillStyle = g;
   const r = 80; ctx.beginPath(); ctx.moveTo(r, 0); ctx.lineTo(512 - r, 0); ctx.quadraticCurveTo(512, 0, 512, r); ctx.lineTo(512, 512 - r); ctx.quadraticCurveTo(512, 512, 512 - r, 512); ctx.lineTo(r, 512); ctx.quadraticCurveTo(0, 512, 0, 512 - r); ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0); ctx.closePath(); ctx.fill();
-  ctx.font = '280px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('📌', 256, 260);
+  ctx.font = '280px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('⚡', 256, 260);
   const iconURL = c.toDataURL('image/png'); document.getElementById('apple-icon').href = iconURL;
-  const manifest = { name: 'スワイプ超特急メモ', short_name: 'スワイプメモ', start_url: './', display: 'standalone', background_color: '#f3f0ff', theme_color: '#7c3aed', orientation: 'portrait-primary', lang: 'ja', icons: [{ src: iconURL, sizes: '512x512', type: 'image/png' }] };
+  const manifest = { name: 'スワイプ超特急メモ', short_name: '超特急メモ', start_url: './', display: 'standalone', background_color: '#f3f0ff', theme_color: '#7c3aed', orientation: 'portrait-primary', lang: 'ja', icons: [{ src: iconURL, sizes: '512x512', type: 'image/png' }] };
   document.getElementById('pwa-manifest').href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
 }
 
@@ -1212,7 +1078,7 @@ function buildSyncPayload() { return JSON.stringify({ cats, history, prefs, dail
 async function syncPush() {
   const tokenEl = document.getElementById('sync-token'); const gistEl = document.getElementById('sync-gist-id');
   if (tokenEl?.value.trim()) syncConfig.token = tokenEl.value.trim();
-  if (!syncConfig.token) { setSyncStatus('⚠ トークン未設定'); return; }
+  if (!syncConfig.token) { setSyncStatus('⚠ 未設定'); return; }
   setSyncStatus('送信中…');
   try {
     const content = buildSyncPayload();
@@ -1231,7 +1097,7 @@ async function syncPull() {
   const tokenEl = document.getElementById('sync-token'); const gistEl = document.getElementById('sync-gist-id');
   if (tokenEl?.value.trim()) syncConfig.token = tokenEl.value.trim();
   if (gistEl?.value.trim()) syncConfig.gistId = gistEl.value.trim();
-  if (!syncConfig.token || !syncConfig.gistId) { setSyncStatus('⚠ 未設定項目あり'); return false; }
+  if (!syncConfig.token || !syncConfig.gistId) { setSyncStatus('⚠ 未入力あり'); return false; }
   setSyncStatus('取得中…');
   try {
     const gist = await gistReq('GET', `/gists/${syncConfig.gistId}`);
@@ -1242,8 +1108,8 @@ async function syncPull() {
     if (data.prefs) { prefs = data.prefs; localStorage.setItem('memo_prefs', JSON.stringify(prefs)); }
     if (data.dailyItems) { dailyItems = data.dailyItems; localStorage.setItem('memo_daily', JSON.stringify(dailyItems)); }
     syncConfig.lastSync = new Date().toISOString(); localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
-    setSyncStatus(`✓ 取得完了 ${new Date().toLocaleTimeString('ja-JP')}`);
-    renderCanvasAndFolders();
+    setSyncStatus(`✓ 同期完了 ${new Date().toLocaleTimeString('ja-JP')}`);
+    renderCanvas();
     return true;
   } catch (e) { setSyncStatus(`⚠ エラー: ${e.message}`); return false; }
 }
@@ -1271,16 +1137,15 @@ const buildStamp = new Date(document.lastModified).toLocaleString('ja-JP', { mon
 document.getElementById('build-stamp').textContent = `build: ${buildStamp}`;
 
 setupPWA();
-renderCanvasAndFolders();
+renderCanvas();
 
-// 起動直後の同期とデイリー自動生成確認
+// 起動時の初期データロード処理
 if (syncConfig.token && syncConfig.gistId) {
   syncPull().then(ok => { checkDailyItems(); });
 } else {
   checkDailyItems();
 }
 
-// タブ復帰時の自動同期
 document.addEventListener('visibilitychange', () => { if (!document.hidden && syncConfig.token && syncConfig.gistId) { syncPull(); } });
 </script>
 </body>
