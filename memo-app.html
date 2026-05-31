@@ -775,16 +775,22 @@ function renderCanvas() {
     if (item.x === undefined || item.y === undefined) {
       const pos = calculateInitialPosition(item.catId, cWidth, cHeight);
       item.x = pos.x; item.y = pos.y;
-    } else {
-      item.x = Math.min(Math.max(0, item.x), cWidth - 140);
-      item.y = Math.min(Math.max(0, item.y), cHeight - 110);
     }
+
+    // 旧データ（絶対値）の互換変換：1より大きければ絶対値と判断
+    if (item.x > 1 || item.y > 1) {
+      item.x = item.x / cWidth;
+      item.y = item.y / cHeight;
+    }
+
+    const absX = Math.min(Math.max(0, item.x * cWidth),  cWidth  - 140);
+    const absY = Math.min(Math.max(0, item.y * cHeight), cHeight - 110);
 
     const note = document.createElement('div');
     note.className = 'sticky-note';
     note.dataset.id = item.id;
-    note.style.left = `${item.x}px`;
-    note.style.top = `${item.y}px`;
+    note.style.left = `${absX}px`;
+    note.style.top  = `${absY}px`;
     
     const catData = cats.find(c => c.id === item.catId);
     if (catData && catData.color) {
@@ -816,12 +822,12 @@ function calculateInitialPosition(catId, canvasWidth, canvasHeight) {
   const catIndex = cats.findIndex(c => c.id === catId);
   const totalCats = cats.length || 1;
   const safeIndex = catIndex >= 0 ? catIndex : 0;
-  
-  const laneWidth = (canvasWidth - 150) / totalCats; 
-  const targetX = Math.floor(10 + (safeIndex * laneWidth) + (Math.random() * (laneWidth * 0.4)));
-  const targetY = Math.max(15, Math.floor(20 + Math.random() * (canvasHeight - 150)));
-  
-  return { x: targetX, y: targetY };
+
+  const laneWidth = (canvasWidth - 150) / totalCats;
+  const absX = Math.floor(10 + (safeIndex * laneWidth) + (Math.random() * (laneWidth * 0.4)));
+  const absY = Math.max(15, Math.floor(20 + Math.random() * (canvasHeight - 150)));
+
+  return { x: absX / canvasWidth, y: absY / canvasHeight };
 }
 
 // ── ポインターイベント対応ドラッグロジック ────────────────────────────────────
@@ -905,8 +911,9 @@ function setupDragElement(el, item) {
     } else {
       const found = history.find(h => h.id === item.id);
       if (found) {
-        found.x = parseInt(el.style.left, 10);
-        found.y = parseInt(el.style.top, 10);
+        const cRect = canvasContainer.getBoundingClientRect();
+        found.x = parseInt(el.style.left, 10) / (cRect.width || 1);
+        found.y = parseInt(el.style.top, 10) / (cRect.height || 1);
         localStorage.setItem('memo_history', JSON.stringify(history));
         syncAuto();
       }
@@ -919,8 +926,9 @@ function setupDragElement(el, item) {
     el.classList.remove('dragging');
     const found = history.find(h => h.id === item.id);
     if (found) {
-      found.x = parseInt(el.style.left, 10);
-      found.y = parseInt(el.style.top, 10);
+      const cRect = canvasContainer.getBoundingClientRect();
+      found.x = parseInt(el.style.left, 10) / (cRect.width || 1);
+      found.y = parseInt(el.style.top, 10) / (cRect.height || 1);
       localStorage.setItem('memo_history', JSON.stringify(history));
     }
     renderCanvas();
