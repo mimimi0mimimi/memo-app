@@ -1086,64 +1086,54 @@ function openDetailModal(itemId) {
 
   const card = detailCard;
   card.style.transition = 'none';
+  card.style.opacity = '1';
+  card.style.pointerEvents = 'all';
+  card.style.transform = 'scale(1)';
   if (catData?.color) {
     card.style.background = lightenColor(catData.color, 0.12);
   } else {
     card.style.background = '#fff';
   }
 
+  // 起点を付箋位置にセット
   if (noteEl) {
     const nr = noteEl.getBoundingClientRect();
-    card.style.left     = nr.left + 'px';
-    card.style.top      = nr.top  + 'px';
-    card.style.width    = nr.width  + 'px';
-    card.style.maxHeight= nr.height + 'px';
-    card.style.transform= 'scale(1)';
+    card.style.left      = nr.left + 'px';
+    card.style.top       = nr.top  + 'px';
+    card.style.width     = nr.width  + 'px';
+    card.style.maxHeight = nr.height + 'px';
+    card.style.borderRadius = '16px';
   } else {
-    card.style.left     = targetL + 'px';
-    card.style.top      = targetT + 'px';
-    card.style.width    = targetW + 'px';
-    card.style.maxHeight= targetH + 'px';
-    card.style.transform= 'scale(0.8)';
+    card.style.left      = targetL + 'px';
+    card.style.top       = targetT + 'px';
+    card.style.width     = targetW + 'px';
+    card.style.maxHeight = targetH + 'px';
+    card.style.borderRadius = '20px';
   }
 
   detailModal.classList.add('open');
 
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    card.style.left     = targetL + 'px';
-    card.style.top      = targetT + 'px';
-    card.style.width    = targetW + 'px';
-    card.style.maxHeight= targetH + 'px';
-    card.style.transform= 'scale(1)';
+    card.style.left        = targetL + 'px';
+    card.style.top         = targetT + 'px';
+    card.style.width       = targetW + 'px';
+    card.style.maxHeight   = targetH + 'px';
     card.style.borderRadius = '20px';
   }));
 }
 
 function closeDetailModal() {
-  const noteEl = detailItemId
-    ? canvasContainer.querySelector(`.sticky-note[data-id="${detailItemId}"]`)
-    : null;
-
   const card = detailCard;
-
-  if (noteEl) {
-    const nr = noteEl.getBoundingClientRect();
-    card.style.left     = nr.left   + 'px';
-    card.style.top      = nr.top    + 'px';
-    card.style.width    = nr.width  + 'px';
-    card.style.maxHeight= nr.height + 'px';
-    card.style.borderRadius = '16px';
-  } else {
-    card.style.transform = 'scale(0.8)';
-    card.style.opacity   = '0';
-  }
+  card.style.transition = 'opacity 0.18s ease';
+  card.style.opacity = '0';
+  card.style.pointerEvents = 'none';
 
   detailModal.classList.remove('open');
 
-  card.addEventListener('transitionend', () => {
+  setTimeout(() => {
     card.style.transition = 'none';
-    card.style.opacity = '0';
-  }, { once: true });
+    card.style.left = '-9999px';
+  }, 200);
 
   detailEditInput.blur();
   detailItemId = null;
