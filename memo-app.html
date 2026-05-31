@@ -775,6 +775,9 @@ function renderCanvas() {
     if (item.x === undefined || item.y === undefined) {
       const pos = calculateInitialPosition(item.catId, cWidth, cHeight);
       item.x = pos.x; item.y = pos.y;
+    } else {
+      item.x = Math.min(Math.max(0, item.x), cWidth - 140);
+      item.y = Math.min(Math.max(0, item.y), cHeight - 110);
     }
 
     const note = document.createElement('div');
