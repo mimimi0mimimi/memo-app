@@ -1396,6 +1396,30 @@ addTriggerBtn.addEventListener('click', () => {
   setTimeout(() => memoInput.focus(), 250);
 });
 inputCancelBtn.addEventListener('click', () => { inputModal.classList.remove('open'); memoInput.blur(); });
+inputModal.addEventListener('click', (e) => { if (e.target === inputModal) { inputModal.classList.remove('open'); memoInput.blur(); } });
+
+// ── キャンバスダブルタップで入力モーダルを開く ────────────────────────────────
+canvasContainer.addEventListener('dblclick', (e) => {
+  if (e.target !== canvasContainer) return;
+  memoInput.value = '';
+  renderModalCatPickers();
+  inputModal.classList.add('open');
+  setTimeout(() => memoInput.focus(), 250);
+});
+
+let canvasLastTap = 0;
+canvasContainer.addEventListener('touchend', (e) => {
+  if (e.target !== canvasContainer) return;
+  const now = Date.now();
+  if (now - canvasLastTap < 300 && now - canvasLastTap > 0) {
+    e.preventDefault();
+    memoInput.value = '';
+    renderModalCatPickers();
+    inputModal.classList.add('open');
+    setTimeout(() => memoInput.focus(), 250);
+  }
+  canvasLastTap = now;
+});
 
 
 // ── Settings panel ────────────────────────────────────────────────────────────
