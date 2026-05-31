@@ -875,10 +875,6 @@
   <button id="add-daily-btn">＋ 追加</button>
 
   <div class="section-label">動作</div>
-  <div class="toggle-row">
-    <span class="toggle-label">バイブレーション</span>
-    <button class="toggle on" id="vib-toggle" aria-label="バイブレーション切替"></button>
-  </div>
   <div class="toggle-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
     <span class="toggle-label">🗑️ ゴミ箱の保持期間</span>
     <div class="trash-retention-row" style="width:100%;">
@@ -986,7 +982,6 @@ const inputCancelBtn = document.getElementById('input-cancel-btn');
 
 const settingsPanel  = document.getElementById('settings-panel');
 const historyPanel   = document.getElementById('history-panel');
-const vibToggle      = document.getElementById('vib-toggle');
 const catSettingsList= document.getElementById('cat-settings-list');
 const historyList    = document.getElementById('history-list');
 const historyFiltersEl = document.getElementById('history-filters');
@@ -1162,14 +1157,14 @@ function setupDragElement(el, item) {
         if (found) {
           found.starred = !found.starred;
           localStorage.setItem('memo_history', JSON.stringify(history));
-          if (prefs.vib && navigator.vibrate) navigator.vibrate(found.starred ? [20, 50, 20] : 15);
+         
           renderCanvas();
           syncAuto();
         }
       }
     }, 500);
 
-    if (prefs.vib && navigator.vibrate) navigator.vibrate(8);
+   
   });
 
   el.addEventListener('pointermove', (e) => {
@@ -1262,7 +1257,7 @@ function executeFolderAction(itemId, actionType) {
   const item = history.find(h => h.id === itemId);
   if (!item) return;
 
-  if (prefs.vib && navigator.vibrate) navigator.vibrate(20);
+ 
 
   if (actionType === 'archive') {
     item.done = true;
@@ -1455,7 +1450,7 @@ function saveDetailEdit() {
   }
 
   localStorage.setItem('memo_history', JSON.stringify(history));
-  if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
+ 
   renderCanvas();
   syncAuto();
   closeDetailModal();
@@ -1559,7 +1554,7 @@ function renderTrashList() {
       item.deleted = false; item.deletedAt = null; item.done = false; item.later = false;
       item.x = pos.x; item.y = pos.y;
       localStorage.setItem('memo_history', JSON.stringify(history));
-      if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
+     
       renderCanvas(); syncAuto();
       if (!history.filter(h => h.deleted).length) { closeTrashModal(); } else { renderTrashList(); }
     });
@@ -1569,7 +1564,7 @@ function renderTrashList() {
     archiveBtn.addEventListener('click', () => {
       item.deleted = false; item.deletedAt = null; item.done = true; item.later = false;
       localStorage.setItem('memo_history', JSON.stringify(history));
-      if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
+     
       renderCanvas(); syncAuto();
       if (!history.filter(h => h.deleted).length) { closeTrashModal(); } else { renderTrashList(); }
     });
@@ -1713,7 +1708,7 @@ function renderLaterList() {
       item.later = false; item.done = false;
       item.x = pos.x; item.y = pos.y;
       localStorage.setItem('memo_history', JSON.stringify(history));
-      if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
+     
       renderCanvas(); syncAuto();
       const remaining = history.filter(h => h.later);
       if (remaining.length === 0) { closeLaterModal(); } else { laterCardTitle.textContent = `⏳ あとで (${remaining.length}件)`; renderLaterList(); }
@@ -1725,7 +1720,7 @@ function renderLaterList() {
     archiveBtn.addEventListener('click', () => {
       item.later = false; item.done = true;
       localStorage.setItem('memo_history', JSON.stringify(history));
-      if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
+     
       renderCanvas(); syncAuto();
       const remaining = history.filter(h => h.later);
       if (remaining.length === 0) { closeLaterModal(); } else { laterCardTitle.textContent = `⏳ あとで (${remaining.length}件)`; renderLaterList(); }
@@ -1755,7 +1750,7 @@ function restoreLaterItems() {
     }
   });
   localStorage.setItem('memo_history', JSON.stringify(history));
-  if (prefs.vib && navigator.vibrate) navigator.vibrate(35);
+ 
   closeLaterModal();
   renderCanvas(); syncAuto();
 }
@@ -1806,7 +1801,7 @@ function createStickyNote(catId) {
   memoInput.value = '';
   setTimeout(() => memoInput.focus(), 50);
 
-  if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
+ 
   renderCanvas();
   syncAuto();
 }
@@ -1849,7 +1844,6 @@ function openSettings() {
   editCats = cats.map(c => ({ ...c, color: c.color || extractColor(c.bg || '') }));
   editDailyItems = deepCopy(dailyItems);
   renderCatSettings(); renderDailyList();
-  vibToggle.classList.toggle('on', prefs.vib);
   updateRetentionBtns();
   settingsPanel.classList.add('open');
 }
@@ -1955,7 +1949,6 @@ function checkDailyItems() {
 }
 
 document.getElementById('add-daily-btn').addEventListener('click', () => { editDailyItems.push({ id: `d-${Date.now()}`, catId: editCats[0]?.id || '', content: '' }); renderDailyList(); });
-vibToggle.addEventListener('click', () => { prefs.vib = !prefs.vib; vibToggle.classList.toggle('on', prefs.vib); });
 
 document.getElementById('save-btn').addEventListener('click', () => {
   cats = editCats.filter(c => c.label.trim() && c.emoji.trim()).map(c => ({ ...c, bg: colorToBg(c.color || extractColor(c.bg || '')) }));
@@ -2059,7 +2052,7 @@ function renderHistory() {
         }
 
         localStorage.setItem('memo_history', JSON.stringify(history));
-        if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
+       
         renderHistory();
         syncAuto();
       }
@@ -2162,7 +2155,7 @@ document.getElementById('import-choice-overwrite').addEventListener('click', () 
   if (data.prefs) { prefs = data.prefs; localStorage.setItem('memo_prefs', JSON.stringify(prefs)); }
   if (data.dailyItems) { dailyItems = data.dailyItems; localStorage.setItem('memo_daily', JSON.stringify(dailyItems)); }
   localStorage.setItem('memo_history', JSON.stringify(history));
-  if (prefs.vib && navigator.vibrate) navigator.vibrate(20);
+ 
   renderCanvas(); renderHistory(); syncAuto();
 });
 
@@ -2175,7 +2168,7 @@ document.getElementById('import-choice-append').addEventListener('click', () => 
   if (!newItems.length) { alert('追記できる新しいメモがありませんでした（全て重複）'); return; }
   history = [...history, ...newItems];
   localStorage.setItem('memo_history', JSON.stringify(history));
-  if (prefs.vib && navigator.vibrate) navigator.vibrate(20);
+ 
   renderCanvas(); renderHistory(); syncAuto();
 });
 
@@ -2245,7 +2238,7 @@ document.getElementById('import-file-settings').addEventListener('change', (e) =
       if (data.prefs) { prefs = data.prefs; localStorage.setItem('memo_prefs', JSON.stringify(prefs)); }
       if (data.dailyItems) { dailyItems = data.dailyItems; localStorage.setItem('memo_daily', JSON.stringify(dailyItems)); }
       localStorage.setItem('memo_history', JSON.stringify(history));
-      if (prefs.vib && navigator.vibrate) navigator.vibrate(20);
+     
       renderCanvas(); closeSettings();
       alert('リストア完了しました！');
     } catch { alert('ファイルの読み込みに失敗しました。'); }
