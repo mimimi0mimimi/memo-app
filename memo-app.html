@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>「あとでやる」1タップ超特急メモ</title>
+  <title>「あとでやる」スワイプ付箋メモ</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="超特急メモ">
@@ -42,11 +42,12 @@
       display: flex;
       flex-direction: column;
       height: 100dvh;
-      padding-top: max(env(safe-area-inset-top, 0px), 14px);
-      padding-bottom: max(env(safe-area-inset-bottom, 0px), 14px);
-      padding-left: 14px;
-      padding-right: 14px;
-      gap: 11px;
+      padding-top: max(env(safe-area-inset-top, 0px), 10px);
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), 10px);
+      padding-left: 12px;
+      padding-right: 12px;
+      gap: 8px;
+      position: relative;
     }
 
     /* ── Header ── */
@@ -55,17 +56,17 @@
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
+      z-index: 10;
     }
 
     #header-title {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 800;
       background: linear-gradient(90deg, #7c3aed, #ec4899);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       letter-spacing: 0.03em;
-      text-align: center;
     }
 
     .icon-btn {
@@ -81,88 +82,184 @@
       justify-content: center;
       color: #7c3aed;
       touch-action: manipulation;
-      transition: background 0.15s;
+      transition: background 0.15s, transform 0.1s;
       flex-shrink: 0;
       box-shadow: 0 2px 12px rgba(124,58,237,0.15);
     }
-    .icon-btn:active { background: #ede9fe; }
-
-    /* ── Textarea ── */
-    #memo-input {
-      flex-shrink: 0;
-      width: 100%;
-      min-height: 98px;
-      max-height: 28vh;
-      padding: 14px 16px;
-      background: #fff;
-      border: 2px solid #e8e0ff;
-      border-radius: 20px;
-      color: #1a1a2e;
-      font-size: 17px;
-      font-family: inherit;
-      line-height: 1.55;
-      resize: none;
-      outline: none;
-      -webkit-appearance: none;
-      user-select: text;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      box-shadow: 0 4px 16px rgba(124,58,237,0.08);
+    .icon-btn:active { background: #ede9fe; transform: scale(0.95); }
+    
+    #add-trigger-btn {
+      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      color: #fff;
+      font-size: 20px;
+      font-weight: bold;
     }
-    #memo-input:focus { border-color: #a78bfa; box-shadow: 0 4px 20px rgba(124,58,237,0.18); }
-    #memo-input::placeholder { color: #c4b5fd; }
 
-    /* ── Category Grid ── */
-    #cat-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 11px;
+    /* ── Canvas Area ── */
+    #canvas-container {
       flex: 1;
-      min-height: 0;
+      position: relative;
+      background: rgba(255, 255, 255, 0.4);
+      border: 2px dashed #e8e0ff;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 10px rgba(124,58,237,0.05);
     }
 
-    .cat-btn {
-      border: none;
-      border-radius: 26px;
-      cursor: pointer;
+    /* ── Sticky Note (付箋) ── */
+    .sticky-note {
+      position: absolute;
+      width: 140px;
+      min-height: 110px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 6px 16px rgba(124,58,237,0.12);
+      cursor: grab;
+      touch-action: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-left: 5px solid #a78bfa;
+      transition: transform 0.05s linear, box-shadow 0.1s;
+      z-index: 5;
+    }
+    .sticky-note.dragging {
+      cursor: grabbing;
+      box-shadow: 0 14px 28px rgba(124,58,237,0.25);
+      z-index: 99;
+    }
+    .sticky-note-text {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #1a1a2e;
+      word-break: break-all;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      user-select: none;
+    }
+    .sticky-note-meta {
+      font-size: 9px;
+      color: #a78bfa;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* ── Folders (吸い込み領域) ── */
+    #folder-area {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 6px 2px;
+      flex-shrink: 0;
+      scrollbar-width: none;
+      z-index: 10;
+    }
+    #folder-area::-webkit-scrollbar { display: none; }
+
+    .folder-box {
+      flex: 1;
+      min-width: 84px;
+      height: 76px;
+      background: #fff;
+      border-radius: 18px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 7px;
-      font-family: inherit;
-      touch-action: manipulation;
-      transition: transform 0.12s ease, filter 0.12s ease;
+      gap: 4px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      transition: transform 0.15s, background-color 0.15s, border-color 0.15s;
+      border: 2px solid transparent;
       position: relative;
+    }
+    .folder-box.drag-over {
+      transform: scale(1.08);
+      background-color: #ede9fe;
+      border-color: #a78bfa;
+    }
+    .folder-emoji { font-size: 26px; }
+    .folder-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: #4c4c6d;
+      text-align: center;
+      max-width: 76px;
+      white-space: nowrap;
       overflow: hidden;
-      -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+      text-overflow: ellipsis;
     }
-    .cat-btn:active { transform: scale(0.93); filter: brightness(0.88); }
 
-    .cat-emoji {
-      font-size: 42px;
-      line-height: 1;
+    /* ── Input Modal ── */
+    #input-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 26, 46, 0.4);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: flex-end;
+      opacity: 0;
       pointer-events: none;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+      transition: opacity 0.2s ease;
     }
-    .cat-label {
-      font-size: 19px;
-      font-weight: 900;
-      color: #fff;
-      letter-spacing: 0.03em;
-      pointer-events: none;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    #input-modal.open { opacity: 1; pointer-events: all; }
+
+    #input-card {
+      width: 100%;
+      background: #f8f5ff;
+      border-radius: 24px 24px 0 0;
+      padding: 20px;
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+      transform: translateY(100%);
+      transition: transform 0.25s cubic-bezier(0.1, 0.76, 0.55, 0.94);
     }
-    .webhook-dot {
-      position: absolute;
-      top: 11px;
-      right: 11px;
-      width: 8px;
-      height: 8px;
-      background: rgba(255,255,255,0.7);
-      border-radius: 50%;
-      pointer-events: none;
+    #input-modal.open #input-card { transform: translateY(0); }
+
+    #memo-input {
+      width: 100%;
+      height: 110px;
+      padding: 14px 16px;
+      background: #fff;
+      border: 2px solid #e8e0ff;
+      border-radius: 16px;
+      color: #1a1a2e;
+      font-size: 16px;
+      font-family: inherit;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+      -webkit-appearance: none;
+      user-select: text;
+      box-shadow: 0 4px 12px rgba(124,58,237,0.05);
     }
+    #memo-input:focus { border-color: #a78bfa; }
+
+    .modal-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .modal-btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .modal-btn.cancel { background: #ede9fe; color: #7c3aed; }
+    .modal-btn.primary { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; box-shadow: 0 4px 14px rgba(124,58,237,0.3); }
 
     /* ── Success Overlay ── */
     #success {
@@ -176,7 +273,7 @@
       align-items: center;
       justify-content: center;
       gap: 14px;
-      z-index: 100;
+      z-index: 1100;
       opacity: 0;
       transform: scale(1.04);
       pointer-events: none;
@@ -197,43 +294,17 @@
       font-weight: 900;
       box-shadow: 0 8px 32px rgba(34,197,94,0.45);
     }
-    #success-label {
-      font-size: 22px;
-      font-weight: 800;
-      color: #1a1a2e;
-      text-align: center;
-    }
+    #success-label { font-size: 21px; font-weight: 800; color: #1a1a2e; text-align: center; }
     #success-preview {
-      font-size: 14px;
-      color: #7c6aad;
-      max-width: 280px;
-      text-align: center;
-      word-break: break-all;
-      line-height: 1.4;
-      background: rgba(124,58,237,0.08);
-      padding: 8px 14px;
-      border-radius: 12px;
+      font-size: 14px; color: #7c6aad; max-width: 280px; text-align: center; word-break: break-all;
+      line-height: 1.4; background: rgba(124,58,237,0.08); padding: 8px 14px; border-radius: 12px;
     }
     #success-line-btn {
-      display: none;
-      margin-top: 6px;
-      padding: 13px 28px;
-      background: #06c755;
-      color: #fff;
-      border: none;
-      border-radius: 50px;
-      font-size: 16px;
-      font-weight: 700;
-      font-family: inherit;
-      cursor: pointer;
-      touch-action: manipulation;
-      box-shadow: 0 6px 24px rgba(6,199,85,0.4);
+      display: none; margin-top: 6px; padding: 13px 28px; background: #06c755; color: #fff;
+      border: none; border-radius: 50px; font-size: 16px; font-weight: 700; cursor: pointer;
+      touch-action: manipulation; box-shadow: 0 6px 24px rgba(6,199,85,0.4);
     }
-    #success-tap-hint {
-      font-size: 12px;
-      color: #a78bfa;
-      margin-top: 4px;
-    }
+    #success-tap-hint { font-size: 12px; color: #a78bfa; margin-top: 4px; }
 
     /* ── Slide Panels ── */
     .panel {
@@ -242,7 +313,7 @@
       bottom: 0;
       width: 100%;
       background: #f8f5ff;
-      z-index: 200;
+      z-index: 2000;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -288,436 +359,76 @@
       box-shadow: 0 2px 10px rgba(124,58,237,0.12);
     }
 
-    /* Settings */
-    .section-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: #a78bfa;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin: 22px 0 10px 4px;
-    }
-
-    .cat-row {
-      background: #fff;
-      border-radius: 18px;
-      padding: 14px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      box-shadow: 0 2px 12px rgba(124,58,237,0.08);
-    }
-    .cat-swatch {
-      width: 50px;
-      height: 50px;
-      border-radius: 14px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-    .cat-swatch:active { opacity: 0.7; }
+    /* Settings Details */
+    .section-label { font-size: 11px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.12em; margin: 22px 0 10px 4px; }
+    .cat-row { background: #fff; border-radius: 18px; padding: 14px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 12px rgba(124,58,237,0.08); }
+    .cat-swatch { width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; touch-action: manipulation; }
     .cat-swatch-hint { font-size: 9px; color: #a78bfa; text-align: center; margin-top: 4px; line-height: 1.2; }
-
     .color-field { display: flex; gap: 8px; align-items: center; }
-    .color-picker {
-      width: 42px;
-      height: 36px;
-      border: none;
-      border-radius: 10px;
-      padding: 2px 3px;
-      cursor: pointer;
-      background: #f3f0ff;
-      flex-shrink: 0;
-      -webkit-appearance: none;
-      outline: none;
-    }
-    .color-hex {
-      font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
-      font-size: 14px;
-      letter-spacing: 0.04em;
-    }
-
+    .color-picker { width: 42px; height: 36px; border: none; border-radius: 10px; padding: 2px 3px; cursor: pointer; background: #f3f0ff; flex-shrink: 0; -webkit-appearance: none; outline: none; }
+    .color-hex { font-family: 'SF Mono', 'Menlo', monospace; font-size: 14px; letter-spacing: 0.04em; }
     .cat-fields { flex: 1; display: flex; flex-direction: column; gap: 7px; }
     .field-group { display: flex; flex-direction: column; gap: 3px; }
     .field-label { font-size: 10px; color: #a78bfa; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
-    .field-input {
-      background: #f3f0ff;
-      border: none;
-      border-radius: 10px;
-      padding: 9px 11px;
-      color: #1a1a2e;
-      font-size: 15px;
-      font-family: inherit;
-      outline: none;
-      width: 100%;
-      user-select: text;
-      -webkit-appearance: none;
-      transition: background 0.15s;
-    }
+    .field-input { background: #f3f0ff; border: none; border-radius: 10px; padding: 9px 11px; color: #1a1a2e; font-size: 15px; font-family: inherit; outline: none; width: 100%; user-select: text; -webkit-appearance: none; transition: background 0.15s; }
     .field-input:focus { background: #ede9fe; }
     .field-input::placeholder { color: #c4b5fd; }
-
-    .del-btn {
-      width: 30px;
-      height: 30px;
-      background: #fee2e2;
-      border: none;
-      border-radius: 50%;
-      color: #f87171;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 10px;
-      touch-action: manipulation;
-    }
-
+    .del-btn { width: 30px; height: 30px; background: #fee2e2; border: none; border-radius: 50%; color: #f87171; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 10px; touch-action: manipulation; }
     .daily-hint { font-size: 12px; color: #a78bfa; margin: -4px 0 10px 2px; }
-    .daily-row {
-      background: #fff;
-      border-radius: 14px;
-      padding: 10px 12px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 2px 12px rgba(124,58,237,0.08);
-    }
-    .daily-cat-select {
-      background: #f3f0ff;
-      border: none;
-      border-radius: 10px;
-      padding: 8px 10px;
-      color: #1a1a2e;
-      font-size: 14px;
-      font-family: inherit;
-      outline: none;
-      flex-shrink: 0;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-    .daily-del-btn {
-      width: 28px;
-      height: 28px;
-      background: #fee2e2;
-      border: none;
-      border-radius: 50%;
-      color: #f87171;
-      font-size: 15px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      touch-action: manipulation;
-    }
-    .del-btn:active { background: #fca5a5; }
-
-    #add-cat-btn {
-      width: 100%;
-      padding: 15px;
-      background: transparent;
-      border: 2px dashed #c4b5fd;
-      border-radius: 18px;
-      color: #a78bfa;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      touch-action: manipulation;
-      margin-top: 2px;
-      transition: border-color 0.15s, color 0.15s;
-    }
+    .daily-row { background: #fff; border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 12px rgba(124,58,237,0.08); }
+    .daily-cat-select { background: #f3f0ff; border: none; border-radius: 10px; padding: 8px 10px; color: #1a1a2e; font-size: 14px; font-family: inherit; outline: none; flex-shrink: 0; -webkit-appearance: none; appearance: none; }
+    .daily-del-btn { width: 28px; height: 28px; background: #fee2e2; border: none; border-radius: 50%; color: #f87171; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; touch-action: manipulation; }
+    #add-cat-btn { width: 100%; padding: 15px; background: transparent; border: 2px dashed #c4b5fd; border-radius: 18px; color: #a78bfa; font-size: 15px; font-weight: 600; cursor: pointer; touch-action: manipulation; margin-top: 2px; }
     #add-cat-btn:active { border-color: #7c3aed; color: #7c3aed; }
-
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #fff;
-      border-radius: 14px;
-      padding: 15px 16px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 10px rgba(124,58,237,0.07);
-    }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 14px; padding: 15px 16px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(124,58,237,0.07); }
     .toggle-label { font-size: 15px; color: #1a1a2e; font-weight: 500; }
-    .toggle {
-      width: 50px;
-      height: 28px;
-      background: #e0d9f7;
-      border-radius: 14px;
-      border: none;
-      position: relative;
-      cursor: pointer;
-      touch-action: manipulation;
-      transition: background 0.2s;
-      flex-shrink: 0;
-    }
+    .toggle { width: 50px; height: 28px; background: #e0d9f7; border-radius: 14px; border: none; position: relative; cursor: pointer; touch-action: manipulation; transition: background 0.2s; flex-shrink: 0; }
     .toggle.on { background: #22c55e; }
-    .toggle::after {
-      content: '';
-      position: absolute;
-      width: 22px;
-      height: 22px;
-      background: #fff;
-      border-radius: 50%;
-      top: 3px;
-      left: 3px;
-      transition: transform 0.2s;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    }
+    .toggle::after { content: ''; position: absolute; width: 22px; height: 22px; background: #fff; border-radius: 50%; top: 3px; left: 3px; transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
     .toggle.on::after { transform: translateX(22px); }
+    .webhook-hint { font-size: 12px; color: #7c6aad; background: #f3f0ff; border-radius: 12px; padding: 12px 14px; margin-top: -2px; line-height: 1.6; border-left: 3px solid #a78bfa; }
+    #save-btn { width: 100%; padding: 17px; background: linear-gradient(135deg, #7c3aed, #6d28d9); border: none; border-radius: 18px; color: #fff; font-size: 17px; font-weight: 800; cursor: pointer; touch-action: manipulation; margin-top: 28px; box-shadow: 0 6px 24px rgba(124,58,237,0.35); }
 
-    .webhook-hint {
-      font-size: 12px;
-      color: #7c6aad;
-      background: #f3f0ff;
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-top: -2px;
-      line-height: 1.6;
-      border-left: 3px solid #a78bfa;
-    }
-
-    #save-btn {
-      width: 100%;
-      padding: 17px;
-      background: linear-gradient(135deg, #7c3aed, #6d28d9);
-      border: none;
-      border-radius: 18px;
-      color: #fff;
-      font-size: 17px;
-      font-weight: 800;
-      font-family: inherit;
-      cursor: pointer;
-      touch-action: manipulation;
-      margin-top: 28px;
-      box-shadow: 0 6px 24px rgba(124,58,237,0.35);
-    }
-    #save-btn:active { filter: brightness(0.92); }
-
-    /* History */
-    .h-item {
-      background: #fff;
-      border-radius: 16px;
-      padding: 12px 13px;
-      margin-bottom: 8px;
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-      box-shadow: 0 2px 12px rgba(124,58,237,0.07);
-    }
-    .h-badge {
-      width: 38px;
-      height: 38px;
-      border-radius: 11px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
+    /* History Details */
+    .h-item { background: #fff; border-radius: 16px; padding: 12px 13px; margin-bottom: 8px; display: flex; gap: 10px; align-items: flex-start; box-shadow: 0 2px 12px rgba(124,58,237,0.07); }
+    .h-badge { width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; }
     .h-body { flex: 1; min-width: 0; }
-    .h-text {
-      font-size: 14px;
-      color: #1a1a2e;
-      line-height: 1.45;
-      word-break: break-all;
-      user-select: text;
-    }
+    .h-text { font-size: 14px; color: #1a1a2e; line-height: 1.45; word-break: break-all; user-select: text; }
     .h-text.empty { color: #c4b5fd; font-style: italic; }
     .h-meta { font-size: 11px; color: #a78bfa; margin-top: 4px; font-weight: 500; }
-    .h-copy {
-      width: 30px;
-      height: 30px;
-      background: #f3f0ff;
-      border: none;
-      border-radius: 9px;
-      font-size: 14px;
-      color: #7c3aed;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      touch-action: manipulation;
-    }
-    .h-copy:active { background: #ede9fe; }
-    .h-del {
-      width: 30px;
-      height: 30px;
-      background: #fef2f2;
-      border: none;
-      border-radius: 9px;
-      font-size: 14px;
-      color: #f87171;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      touch-action: manipulation;
-    }
-    .h-del:active { background: #fee2e2; }
-    .date-sep {
-      font-size: 11px;
-      font-weight: 700;
-      color: #a78bfa;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin: 18px 0 8px 2px;
-    }
+    .h-action-btns { display: flex; flex-direction: column; gap: 4px; }
+    .h-btn-small { width: 30px; height: 30px; border: none; border-radius: 9px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; touch-action: manipulation; }
+    .h-copy { background: #f3f0ff; color: #7c3aed; }
+    .h-del { background: #fef2f2; color: #f87171; }
+    .h-restore { background: #e0f2fe; color: #0284c7; }
+    .date-sep { font-size: 11px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.08em; margin: 18px 0 8px 2px; }
     .h-empty { text-align: center; color: #c4b5fd; font-size: 15px; padding: 50px 0; line-height: 2; }
-    .export-btn {
-      padding: 8px 12px;
-      background: #ede9fe;
-      border: none;
-      border-radius: 10px;
-      color: #7c3aed;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      touch-action: manipulation;
-      white-space: nowrap;
-    }
-    .export-btn:active { background: #ddd6fe; }
+    .export-btn { padding: 8px 12px; background: #ede9fe; border: none; border-radius: 10px; color: #7c3aed; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .clear-btn { padding: 8px 14px; background: #fee2e2; border: none; border-radius: 9px; color: #f87171; font-size: 13px; font-weight: 600; cursor: pointer; }
 
-    .clear-btn {
-      padding: 8px 14px;
-      background: #fee2e2;
-      border: none;
-      border-radius: 9px;
-      color: #f87171;
-      font-size: 13px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-    .clear-btn:active { background: #fca5a5; }
-
-    /* ── Sync Section ── */
-    .sync-box {
-      background: #fff;
-      border-radius: 18px;
-      padding: 16px;
-      box-shadow: 0 2px 12px rgba(124,58,237,0.08);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .sync-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .sync-btn {
-      padding: 10px 20px;
-      background: #7c3aed;
-      border: none;
-      border-radius: 12px;
-      color: #fff;
-      font-size: 14px;
-      font-weight: 700;
-      font-family: inherit;
-      cursor: pointer;
-      touch-action: manipulation;
-      transition: filter 0.15s;
-    }
-    .sync-btn:active { filter: brightness(0.88); }
-    .sync-btn.secondary {
-      background: #f3f0ff;
-      color: #7c3aed;
-    }
-    #sync-status {
-      font-size: 12px;
-      color: #a78bfa;
-      flex: 1;
-      text-align: right;
-      min-width: 0;
-    }
-    .sync-hint {
-      font-size: 11px;
-      color: #7c6aad;
-      background: #f3f0ff;
-      border-radius: 10px;
-      padding: 10px 12px;
-      line-height: 1.7;
-      border-left: 3px solid #c4b5fd;
-    }
-    .sync-gist-id-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    /* Sync Details */
+    .sync-box { background: #fff; border-radius: 18px; padding: 16px; box-shadow: 0 2px 12px rgba(124,58,237,0.08); display: flex; flex-direction: column; gap: 10px; }
+    .sync-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .sync-btn { padding: 10px 20px; background: #7c3aed; border: none; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+    .sync-btn.secondary { background: #f3f0ff; color: #7c3aed; }
+    #sync-status { font-size: 12px; color: #a78bfa; flex: 1; text-align: right; min-width: 0; }
+    .sync-hint { font-size: 11px; color: #7c6aad; background: #f3f0ff; border-radius: 10px; padding: 10px 12px; line-height: 1.7; border-left: 3px solid #c4b5fd; }
+    .sync-gist-id-row { display: flex; align-items: center; gap: 6px; }
     .sync-gist-id-row .field-input { flex: 1; }
-    .copy-gist-btn {
-      padding: 9px 12px;
-      background: #f3f0ff;
-      border: none;
-      border-radius: 10px;
-      color: #7c3aed;
-      font-size: 14px;
-      cursor: pointer;
-      touch-action: manipulation;
-      flex-shrink: 0;
-    }
-    #build-stamp {
-      text-align: center;
-      font-size: 10px;
-      color: #c4b5fd;
-      margin-top: 12px;
-      letter-spacing: 0.05em;
-    }
+    .copy-gist-btn { padding: 9px 12px; background: #f3f0ff; border: none; border-radius: 10px; color: #7c3aed; font-size: 14px; cursor: pointer; flex-shrink: 0; }
+    #build-stamp { text-align: center; font-size: 10px; color: #c4b5fd; margin-top: 12px; letter-spacing: 0.05em; }
 
-    /* ── History Filters ── */
-    #history-filters {
-      padding-bottom: 12px;
-      margin-bottom: 8px;
-      border-bottom: 1px solid #ede8ff;
-    }
+    /* History Filters */
+    #history-filters { padding-bottom: 12px; margin-bottom: 8px; border-bottom: 1px solid #ede8ff; }
     .filter-section { margin-bottom: 10px; }
-    .filter-label {
-      font-size: 10px; font-weight: 700; color: #a78bfa;
-      text-transform: uppercase; letter-spacing: 0.1em;
-      margin-bottom: 6px; padding-left: 2px;
-    }
-    .filter-row {
-      display: flex; gap: 6px; overflow-x: auto;
-      scrollbar-width: none; padding-bottom: 2px;
-    }
+    .filter-label { font-size: 10px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; padding-left: 2px; }
+    .filter-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
     .filter-row::-webkit-scrollbar { display: none; }
-    .filter-pill {
-      flex-shrink: 0; padding: 7px 16px;
-      background: #fff; border: 2px solid #e8e0ff;
-      border-radius: 50px; font-size: 13px; font-weight: 600;
-      color: #7c6aad; cursor: pointer; touch-action: manipulation;
-      font-family: inherit; white-space: nowrap;
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
-    }
+    .filter-pill { flex-shrink: 0; padding: 7px 16px; background: #fff; border: 2px solid #e8e0ff; border-radius: 50px; font-size: 13px; font-weight: 600; color: #7c6aad; cursor: pointer; white-space: nowrap; font-family: inherit; }
     .filter-pill.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
 
-    /* ── Checkbox ── */
-    .h-check {
-      width: 22px; height: 22px; min-width: 22px;
-      border-radius: 50%; border: 2px solid #d4c8f7;
-      background: transparent; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 900; color: #fff;
-      touch-action: manipulation; align-self: center; flex-shrink: 0;
-      transition: background 0.15s, border-color 0.15s;
-    }
+    .h-check { width: 22px; height: 22px; min-width: 22px; border-radius: 50%; border: 2px solid #d4c8f7; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; align-self: center; flex-shrink: 0; }
     .h-check.checked { background: #22c55e; border-color: #22c55e; }
-
-    /* ── Done item ── */
     .h-item.done { background: #faf8ff; }
     .h-item.done .h-text { text-decoration: line-through; color: #b0a8cc; }
     .h-item.done .h-badge { opacity: 0.5; }
@@ -728,33 +439,34 @@
 <div id="app">
   <div id="header">
     <button class="icon-btn" id="history-btn" aria-label="履歴">📋</button>
-    <div id="header-title">「あとでやる」超特急メモ</div>
+    <div id="header-title">「あとでやる」スワイプ超特急</div>
+    <button class="icon-btn" id="add-trigger-btn" aria-label="メモ追加">＋</button>
     <button class="icon-btn" id="settings-btn" aria-label="設定">⚙️</button>
   </div>
 
-  <textarea id="memo-input"
-    placeholder="今思いついたこと、ここに…"
-    rows="4"
-    autocomplete="off"
-    autocorrect="on"
-    autocapitalize="sentences"
-    spellcheck="true"
-    aria-label="メモ入力"
-  ></textarea>
+  <div id="canvas-container"></div>
 
-  <div id="cat-grid" role="group" aria-label="カテゴリ"></div>
+  <div id="folder-area" role="group" aria-label="分類フォルダ"></div>
 </div>
 
-<!-- Success overlay -->
+<div id="input-modal" role="dialog" aria-modal="true">
+  <div id="input-card">
+    <textarea id="memo-input" placeholder="思いついたこと、ここに…" rows="4" autocomplete="off" autocorrect="on" autocapitalize="sentences" spellcheck="true"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" id="input-cancel-btn">閉じる</button>
+      <button class="modal-btn primary" id="input-submit-btn">付箋を貼る</button>
+    </div>
+  </div>
+</div>
+
 <div id="success" role="status" aria-live="polite">
   <div id="success-ring">✓</div>
-  <div id="success-label">保存しました</div>
+  <div id="success-label">分類しました</div>
   <div id="success-preview"></div>
   <button id="success-line-btn">🟢 LINEで送る</button>
   <div id="success-tap-hint">タップして閉じる</div>
 </div>
 
-<!-- Settings panel -->
 <div id="settings-panel" class="panel" role="dialog" aria-label="設定">
   <div class="panel-header">
     <button class="back-btn" id="settings-back" aria-label="戻る">←</button>
@@ -766,7 +478,7 @@
   <button id="add-cat-btn">＋ カテゴリを追加</button>
 
   <div class="section-label">📅 毎日追加</div>
-  <div class="daily-hint">起動時にその日がまだなければ自動追加します</div>
+  <div class="daily-hint">起動時にその日がまだなければキャンバスに自動追加します</div>
   <div id="daily-settings-list"></div>
   <button id="add-daily-btn">＋ 追加</button>
 
@@ -780,48 +492,41 @@
   <div class="sync-box">
     <div class="field-group">
       <div class="field-label">GitHub Personal Access Token</div>
-      <input type="password" id="sync-token" class="field-input"
-        placeholder="ghp_xxxxxxxxxxxx" autocomplete="off" autocorrect="off" spellcheck="false">
+      <input type="password" id="sync-token" class="field-input" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off" autocorrect="off" spellcheck="false">
     </div>
     <div class="field-group">
-      <div class="field-label">Gist ID（初回送信後に自動入力）</div>
+      <div class="field-label">Gist ID</div>
       <div class="sync-gist-id-row">
-        <input type="text" id="sync-gist-id" class="field-input"
-          placeholder="PCで発行されたIDを貼り付け" autocomplete="off" autocorrect="off" spellcheck="false">
+        <input type="text" id="sync-gist-id" class="field-input" placeholder="自動生成または貼り付け" autocomplete="off" autocorrect="off" spellcheck="false">
         <button class="copy-gist-btn" id="copy-gist-btn" title="コピー">📋</button>
       </div>
     </div>
     <div class="sync-actions">
       <button class="sync-btn" id="sync-push-btn">↑ 送信</button>
       <button class="sync-btn secondary" id="sync-pull-btn">↓ 取得</button>
-      <button class="sync-btn secondary" id="sync-reset-btn" title="IDをリセットして新しいGistを作成">↺ リセット</button>
+      <button class="sync-btn secondary" id="sync-reset-btn" title="新規Gist作成">↺ リセット</button>
       <span id="sync-status">未設定</span>
     </div>
     <div class="sync-hint">
       <strong>初回セットアップ：</strong><br>
-      1. <a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank" style="color:#7c3aed">GitHub → Settings → Tokens</a> で <code>gist</code> スコープのみの PAT を発行<br>
-      2. このデバイスでトークン入力 →「↑ 送信」→ Gist ID をコピー<br>
-      3. 他のデバイスでトークン + Gist ID を入力 →「↓ 取得」<br>
-      ※ トークンはこのデバイスにのみ保存され、GitHub には送信されません
+      1. <a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank" style="color:#7c3aed">GitHubトークン発行画面</a> で <code>gist</code> スコープを付与してトークンを生成。<br>
+      2. 貼り付けて「↑ 送信」すると自動で新しい同期用Gistが作られます。
     </div>
   </div>
 
   <div class="section-label">Webhook について</div>
   <div class="webhook-hint">
-    各カテゴリに Webhook URL を設定すると、保存と同時に外部へ送信されます。<br>
-    <strong>Slack</strong>: Incoming Webhook URL をそのまま貼り付け<br>
-    <strong>その他</strong>: JSON <code>{"text":"…","category":"…"}</code> を POST
+    カテゴリ毎にWebhookを設定可能。スワイプ吸い込みと同時にJSON形式 <code>{"text":"…","category":"…"}</code> がPOST送信されます。
   </div>
 
   <button id="save-btn">✓ 保存する</button>
   <div id="build-stamp"></div>
 </div>
 
-<!-- History panel -->
 <div id="history-panel" class="panel" role="dialog" aria-label="履歴">
   <div class="panel-header">
     <button class="back-btn" id="history-back" aria-label="戻る">←</button>
-    <span class="panel-title">履歴</span>
+    <span class="panel-title">履歴 / 管理</span>
     <button class="export-btn" id="export-btn" title="完了済みをCSVエクスポート">📥 CSV</button>
     <button class="clear-btn" id="clear-btn">完了を削除</button>
   </div>
@@ -840,13 +545,8 @@ function darkenColor(hex, factor = 0.72) {
   const b = Math.round(parseInt(h.slice(4,6), 16) * factor);
   return '#' + [r,g,b].map(v => Math.min(255,v).toString(16).padStart(2,'0')).join('');
 }
-function colorToBg(hex) {
-  return `linear-gradient(135deg, ${hex}, ${darkenColor(hex)})`;
-}
-function extractColor(bg) {
-  const m = (bg || '').match(/#[0-9a-fA-F]{6}/);
-  return m ? m[0] : '#7c3aed';
-}
+function colorToBg(hex) { return `linear-gradient(135deg, ${hex}, ${darkenColor(hex)})`; }
+function extractColor(bg) { const m = (bg || '').match(/#[0-9a-fA-F]{6}/); return m ? m[0] : '#7c3aed'; }
 function isValidHex(v) { return /^#[0-9a-fA-F]{6}$/.test(v); }
 
 const DEFAULT_CATS = [
@@ -868,8 +568,14 @@ let historyFilter = { done: 'all', catId: 'all' };
 function deepCopy(x) { return JSON.parse(JSON.stringify(x)); }
 
 // ── DOM refs ─────────────────────────────────────────────────────────────────
+const canvasContainer = document.getElementById('canvas-container');
+const folderArea     = document.getElementById('folder-area');
+const inputModal     = document.getElementById('input-modal');
 const memoInput      = document.getElementById('memo-input');
-const catGrid        = document.getElementById('cat-grid');
+const addTriggerBtn  = document.getElementById('add-trigger-btn');
+const inputCancelBtn = document.getElementById('input-cancel-btn');
+const inputSubmitBtn = document.getElementById('input-submit-btn');
+
 const successEl      = document.getElementById('success');
 const successLabel   = document.getElementById('success-label');
 const successPreview = document.getElementById('success-preview');
@@ -881,64 +587,208 @@ const catSettingsList= document.getElementById('cat-settings-list');
 const historyList    = document.getElementById('history-list');
 const historyFiltersEl = document.getElementById('history-filters');
 
-// ── Render category grid ──────────────────────────────────────────────────────
-function renderGrid() {
-  catGrid.innerHTML = '';
+// ── Render Canvas & Folders ──────────────────────────────────────────────────
+function renderCanvasAndFolders() {
+  // 1. フォルダ(吸い込み領域)の生成
+  folderArea.innerHTML = '';
   cats.forEach(cat => {
-    const btn = document.createElement('button');
-    btn.className = 'cat-btn';
-    btn.style.background = cat.color ? colorToBg(cat.color) : (cat.bg || colorToBg('#7c3aed'));
-    btn.setAttribute('aria-label', cat.label + ' に保存');
-    btn.innerHTML =
-      `<span class="cat-emoji">${esc(cat.emoji)}</span>` +
-      `<span class="cat-label">${esc(cat.label)}</span>` +
-      (cat.webhook ? '<span class="webhook-dot" title="Webhook設定済み"></span>' : '');
-    btn.addEventListener('click', () => saveMemo(cat));
-    catGrid.appendChild(btn);
+    const fBox = document.createElement('div');
+    fBox.className = 'folder-box';
+    fBox.dataset.catId = cat.id;
+    fBox.style.borderBottom = `4px solid ${cat.color || '#7c3aed'}`;
+    fBox.innerHTML = `
+      <span class="folder-emoji">${esc(cat.emoji)}</span>
+      <span class="folder-label">${esc(cat.label)}</span>
+    `;
+    folderArea.appendChild(fBox);
+  });
+
+  // 2. キャンバス上の付箋の描画
+  canvasContainer.innerHTML = '';
+  
+  // 「キャンバスに残るべきメモ」＝catIdが未設定("unclassified"等) かつ 未完了のもの
+  const activeNotes = history.filter(item => !item.catId || item.catId === 'unclassified');
+
+  if (activeNotes.length === 0) {
+    const hint = document.createElement('div');
+    hint.style.cssText = 'position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#c4b5fd; font-size:14px; font-weight:600; text-align:center; padding:20px; pointer-events:none; line-height:1.6;';
+    hint.innerHTML = 'キャンバスに付箋はありません<br>右上「＋」ボタンから新しいメモを作成！';
+    canvasContainer.appendChild(hint);
+    return;
+  }
+
+  // コンテナのサイズ取得（座標の安全圏維持のため）
+  const rect = canvasContainer.getBoundingClientRect();
+  const cWidth = rect.width || window.innerWidth - 24;
+  const cHeight = rect.height || 400;
+
+  activeNotes.forEach(item => {
+    // 座標の初期化保護
+    if (item.x === undefined || item.y === undefined) {
+      item.x = Math.max(10, Math.floor(Math.random() * (cWidth - 150)));
+      item.y = Math.max(10, Math.floor(Math.random() * (cHeight - 120)));
+    }
+
+    const note = document.createElement('div');
+    note.className = 'sticky-note';
+    note.dataset.id = item.id;
+    note.style.left = `${item.x}px`;
+    note.style.top = `${item.y}px`;
+
+    // 毎日追加などで割り当てがある場合は色を変える
+    if (item.catColor) {
+      note.style.borderLeftColor = item.catColor;
+    }
+
+    const d = new Date(item.ts);
+    const timeStr = d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+
+    note.innerHTML = `
+      <div class="sticky-note-text">${esc(item.text || '(空メモ)')}</div>
+      <div class="sticky-note-meta">
+        <span>🕒 ${esc(timeStr)}</span>
+        <span style="opacity:0.7;">📌</span>
+      </div>
+    `;
+
+    setupDragElement(note, item);
+    canvasContainer.appendChild(note);
   });
 }
 
-// ── Save memo ────────────────────────────────────────────────────────────────
-let successTimer = null;
+// ── Touch Drag Logic (iPhone最適化) ──────────────────────────────────────────
+function setupDragElement(el, item) {
+  let startX = 0, startY = 0;
+  let initialLeft = 0, initialTop = 0;
+  let foldersData = [];
 
-async function saveMemo(cat) {
-  const text = memoInput.value.trim();
-  if (prefs.vib && navigator.vibrate) navigator.vibrate(28);
+  el.addEventListener('touchstart', (e) => {
+    // 複数タッチは無視
+    if (e.touches.length > 1) return;
+    
+    el.classList.add('dragging');
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    initialLeft = parseInt(el.style.left, 10) || 0;
+    initialTop = parseInt(el.style.top, 10) || 0;
 
-  const item = {
-    id: Date.now() + '_' + Math.random().toString(36).slice(2),
-    text,
-    catId:    cat.id,
-    catLabel: cat.label,
-    catEmoji: cat.emoji,
-    catBg:    cat.color ? colorToBg(cat.color) : (cat.bg || colorToBg('#7c3aed')),
-    ts:       new Date().toISOString(),
-  };
-  history.unshift(item);
-  if (history.length > 300) history.length = 300;
+    // 分類フォルダの全当たり判定位置情報をキャッシュ
+    foldersData = [];
+    document.querySelectorAll('.folder-box').forEach(fb => {
+      foldersData.push({
+        element: fb,
+        rect: fb.getBoundingClientRect(),
+        catId: fb.dataset.catId
+      });
+    });
+
+    if (prefs.vib && navigator.vibrate) navigator.vibrate(8);
+  }, { passive: true });
+
+  el.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 1) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+
+    let newLeft = initialLeft + dx;
+    let newTop = initialTop + dy;
+
+    // キャンバス内での限界制限
+    const cRect = canvasContainer.getBoundingClientRect();
+    if (newLeft < 0) newLeft = 0;
+    if (newLeft > cRect.width - 140) newLeft = cRect.width - 140;
+    if (newTop < 0) newTop = 0;
+    if (newTop > cRect.height - 110) newTop = cRect.height - 110;
+
+    el.style.left = `${newLeft}px`;
+    el.style.top = `${newTop}px`;
+
+    // 現在の指の位置がフォルダ領域に入っているかリアルタイム判定
+    const currentX = touch.clientX;
+    const currentY = touch.clientY;
+    
+    foldersData.forEach(folder => {
+      if (currentX >= folder.rect.left && currentX <= folder.rect.right &&
+          currentY >= folder.rect.top && currentY <= folder.rect.bottom) {
+        folder.element.classList.add('drag-over');
+      } else {
+        folder.element.classList.remove('drag-over');
+      }
+    });
+  }, { passive: true });
+
+  el.addEventListener('touchend', (e) => {
+    el.classList.remove('dragging');
+    
+    // 指が離れた時点の重なり情報をチェック
+    let matchedFolder = null;
+    foldersData.forEach(folder => {
+      if (folder.element.classList.contains('drag-over')) {
+        matchedFolder = folder;
+        folder.element.classList.remove('drag-over');
+      }
+    });
+
+    const finalLeft = parseInt(el.style.left, 10) || 0;
+    const finalTop = parseInt(el.style.top, 10) || 0;
+
+    if (matchedFolder) {
+      // 1. 吸い込み分類処理
+      classifyNote(item.id, matchedFolder.catId);
+    } else {
+      // 2. 通常移動: 位置を記憶
+      const found = history.find(h => h.id === item.id);
+      if (found) {
+        found.x = finalLeft;
+        found.y = finalTop;
+        localStorage.setItem('memo_history', JSON.stringify(history));
+        syncAuto(); // 位置変更も自動保存
+      }
+    }
+  });
+}
+
+// ── Classify Action (吸い込み・Webhook・バイブ) ───────────────────────────────
+async function classifyNote(itemId, catId) {
+  const targetCat = cats.find(c => c.id === catId);
+  const item = history.find(h => h.id === itemId);
+
+  if (!targetCat || !item) return;
+
+  // データ構造の書き換え (既存ロジックと連動)
+  item.catId    = targetCat.id;
+  item.catLabel = targetCat.label;
+  item.catEmoji = targetCat.emoji;
+  item.catBg    = targetCat.color ? colorToBg(targetCat.color) : colorToBg('#7c3aed');
+  item.done     = true; // 分類された＝タスク完了・非表示
+
   localStorage.setItem('memo_history', JSON.stringify(history));
 
-  if (cat.webhook) {
-    fetch(cat.webhook, {
+  // バイブレーション
+  if (prefs.vib && navigator.vibrate) navigator.vibrate(28);
+
+  // Webhook送信処理
+  if (targetCat.webhook) {
+    fetch(targetCat.webhook, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        text: text ? `[${cat.label}] ${text}` : `[${cat.label}] (メモなし)`,
-        category: cat.label,
-        memo: text,
+        text: item.text ? `[${targetCat.label}] ${item.text}` : `[${targetCat.label}] (メモなし)`,
+        category: targetCat.label,
+        memo: item.text,
         timestamp: item.ts,
       }),
     }).catch(() => {});
   }
 
-  memoInput.value = '';
-  memoInput.blur();
+  // 成功モーダルの表示
+  successLabel.textContent = `${targetCat.emoji} ${targetCat.label} へ分類！`;
+  successPreview.textContent = item.text.length > 40 ? item.text.slice(0, 40) + '…' : item.text;
 
-  successLabel.textContent = `${cat.emoji}  ${cat.label} に保存！`;
-  successPreview.textContent = text.length > 40 ? text.slice(0, 40) + '…' : text;
-
-  if (text) {
-    const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;
+  if (item.text) {
+    const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(item.text)}`;
     successLineBtn.style.display = 'block';
     successLineBtn.onclick = (e) => { e.stopPropagation(); window.open(lineUrl, '_blank'); };
   } else {
@@ -949,17 +799,64 @@ async function saveMemo(cat) {
   clearTimeout(successTimer);
   successTimer = setTimeout(() => {
     successEl.classList.remove('show');
-    setTimeout(() => memoInput.focus(), 150);
-  }, 1700);
+  }, 1400);
 
-  syncAuto(); // 3秒後に Gist へ自動送信
+  // 再レンダリング & クラウド自動同期
+  renderCanvasAndFolders();
+  syncAuto();
 }
 
+let successTimer = null;
 successEl.addEventListener('click', () => {
   clearTimeout(successTimer);
   successEl.classList.remove('show');
-  setTimeout(() => memoInput.focus(), 150);
 });
+
+// ── Add New Memo Modal ───────────────────────────────────────────────────────
+addTriggerBtn.addEventListener('click', () => {
+  memoInput.value = '';
+  inputModal.classList.add('open');
+  setTimeout(() => memoInput.focus(), 250);
+});
+
+inputCancelBtn.addEventListener('click', () => {
+  inputModal.classList.remove('open');
+  memoInput.blur();
+});
+
+inputSubmitBtn.addEventListener('click', () => {
+  const text = memoInput.value.trim();
+  // 空文字でも付箋化は許可するが、一応空でも作成可能とする
+  const rect = canvasContainer.getBoundingClientRect();
+  const cWidth = rect.width || window.innerWidth - 24;
+  const cHeight = rect.height || 400;
+
+  const newItem = {
+    id: Date.now() + '_' + Math.random().toString(36).slice(2),
+    text: text,
+    catId: 'unclassified', // 初期は未分類
+    catLabel: '未分類',
+    catEmoji: '📌',
+    catBg: colorToBg('#7c3aed'),
+    ts: new Date().toISOString(),
+    done: false,
+    x: Math.max(15, Math.floor(Math.random() * (cWidth - 150))),
+    y: Math.max(15, Math.floor(Math.random() * (cHeight - 120)))
+  };
+
+  history.unshift(newItem);
+  if (history.length > 300) history.length = 300;
+  localStorage.setItem('memo_history', JSON.stringify(history));
+
+  inputModal.classList.remove('open');
+  memoInput.blur();
+
+  if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
+
+  renderCanvasAndFolders();
+  syncAuto();
+});
+
 
 // ── Settings panel ────────────────────────────────────────────────────────────
 function openSettings() {
@@ -974,9 +871,7 @@ function openSettings() {
   settingsPanel.classList.add('open');
 }
 
-function closeSettings() {
-  settingsPanel.classList.remove('open');
-}
+function closeSettings() { settingsPanel.classList.remove('open'); }
 
 function renderCatSettings() {
   catSettingsList.innerHTML = '';
@@ -985,21 +880,16 @@ function renderCatSettings() {
     row.className = 'cat-row';
 
     const swatchWrap = document.createElement('div');
-    swatchWrap.style.flexShrink = '0';
-    swatchWrap.style.display = 'flex';
-    swatchWrap.style.flexDirection = 'column';
-    swatchWrap.style.alignItems = 'center';
-    swatchWrap.style.gap = '3px';
+    swatchWrap.style.cssText = 'flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:3px;';
 
     const swatch = document.createElement('div');
     swatch.className = 'cat-swatch';
-    swatch.style.background = cat.bg;
+    swatch.style.background = cat.bg || colorToBg(cat.color || '#7c3aed');
     swatch.textContent = cat.emoji;
-    swatch.title = 'カラーを変更';
 
     const swatchHint = document.createElement('div');
     swatchHint.className = 'cat-swatch-hint';
-    swatchHint.textContent = 'プレビュー';
+    swatchHint.textContent = '見本';
 
     swatchWrap.append(swatch, swatchHint);
 
@@ -1007,31 +897,23 @@ function renderCatSettings() {
     fields.className = 'cat-fields';
 
     const emojiField = makeField('絵文字', 'text', cat.emoji, '💡', 4, v => {
-      editCats[i].emoji = v;
-      swatch.textContent = v || '?';
+      editCats[i].emoji = v; swatch.textContent = v || '?';
     });
     const labelField = makeField('ラベル', 'text', cat.label, 'カテゴリ名', 12, v => {
       editCats[i].label = v;
     });
-    const webhookField = makeField('Webhook URL（任意）', 'url', cat.webhook, 'https://hooks.slack.com/…', 300, v => {
+    const webhookField = makeField('Webhook URL', 'url', cat.webhook, 'https://...', 300, v => {
       editCats[i].webhook = v;
     });
-
     const colorField = makeColorField(cat.color, v => {
-      editCats[i].color = v;
-      swatch.style.background = colorToBg(v);
+      editCats[i].color = v; swatch.style.background = colorToBg(v);
     });
 
     fields.append(emojiField, labelField, colorField, webhookField);
 
     const delBtn = document.createElement('button');
-    delBtn.className = 'del-btn';
-    delBtn.textContent = '×';
-    delBtn.setAttribute('aria-label', '削除');
-    delBtn.addEventListener('click', () => {
-      editCats.splice(i, 1);
-      renderCatSettings();
-    });
+    delBtn.className = 'del-btn'; delBtn.textContent = '×';
+    delBtn.addEventListener('click', () => { editCats.splice(i, 1); renderCatSettings(); });
 
     row.append(swatchWrap, fields, delBtn);
     catSettingsList.appendChild(row);
@@ -1039,308 +921,221 @@ function renderCatSettings() {
 }
 
 function makeField(label, type, value, placeholder, maxLen, onChange) {
-  const wrap = document.createElement('div');
-  wrap.className = 'field-group';
-  const lbl = document.createElement('div');
-  lbl.className = 'field-label';
-  lbl.textContent = label;
-  const inp = document.createElement('input');
-  inp.type = type;
-  inp.className = 'field-input';
-  inp.value = value;
-  inp.placeholder = placeholder;
-  inp.maxLength = maxLen;
+  const wrap = document.createElement('div'); wrap.className = 'field-group';
+  const lbl = document.createElement('div'); lbl.className = 'field-label'; lbl.textContent = label;
+  const inp = document.createElement('input'); inp.type = type; inp.className = 'field-input'; inp.value = value || ''; inp.placeholder = placeholder; inp.maxLength = maxLen;
   inp.addEventListener('input', () => onChange(inp.value));
-  wrap.append(lbl, inp);
-  return wrap;
+  wrap.append(lbl, inp); return wrap;
 }
 
 function makeColorField(color, onChange) {
   const DEFAULTS = ['#059669','#18181b','#7c3aed','#ea580c','#db2777','#0ea5e9','#d97706','#dc2626'];
   const safeColor = isValidHex(color) ? color : '#7c3aed';
+  const wrap = document.createElement('div'); wrap.className = 'field-group';
+  const lbl = document.createElement('div'); lbl.className = 'field-label'; lbl.textContent = 'カラー';
+  const row = document.createElement('div'); row.className = 'color-field';
+  const picker = document.createElement('input'); picker.type = 'color'; picker.className = 'color-picker'; picker.value = safeColor;
+  const text = document.createElement('input'); text.type = 'text'; text.className = 'field-input color-hex'; text.value = safeColor; text.maxLength = 7;
 
-  const wrap = document.createElement('div');
-  wrap.className = 'field-group';
-
-  const lbl = document.createElement('div');
-  lbl.className = 'field-label';
-  lbl.textContent = 'カラー（ベースカラー）';
-
-  const row = document.createElement('div');
-  row.className = 'color-field';
-
-  const picker = document.createElement('input');
-  picker.type = 'color';
-  picker.className = 'color-picker';
-  picker.value = safeColor;
-
-  const text = document.createElement('input');
-  text.type = 'text';
-  text.className = 'field-input color-hex';
-  text.value = safeColor;
-  text.placeholder = '#000000';
-  text.maxLength = 7;
-  text.setAttribute('inputmode', 'text');
-  text.setAttribute('autocomplete', 'off');
-
-  picker.addEventListener('input', () => {
-    text.value = picker.value;
-    onChange(picker.value);
-  });
-
+  picker.addEventListener('input', () => { text.value = picker.value; onChange(picker.value); });
   text.addEventListener('input', () => {
-    let v = text.value.trim();
-    if (!v.startsWith('#')) v = '#' + v;
+    let v = text.value.trim(); if (!v.startsWith('#')) v = '#' + v;
     if (isValidHex(v)) { picker.value = v; onChange(v); }
   });
 
-  const presets = document.createElement('div');
-  presets.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;';
+  const presets = document.createElement('div'); presets.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;';
   DEFAULTS.forEach(c => {
-    const dot = document.createElement('button');
-    dot.type = 'button';
-    dot.style.cssText = `width:24px;height:24px;border-radius:50%;background:${c};border:2px solid transparent;cursor:pointer;touch-action:manipulation;flex-shrink:0;`;
-    dot.setAttribute('aria-label', c);
-    dot.addEventListener('click', () => {
-      picker.value = c; text.value = c;
-      presets.querySelectorAll('button').forEach(b => b.style.borderColor = 'transparent');
-      dot.style.borderColor = '#fff';
-      onChange(c);
-    });
-    if (c === safeColor) dot.style.borderColor = '#fff';
+    const dot = document.createElement('button'); dot.type = 'button';
+    dot.style.cssText = `width:22px;height:22px;border-radius:50%;background:${c};border:2px solid transparent;cursor:pointer;`;
+    dot.addEventListener('click', () => { picker.value = c; text.value = c; onChange(c); });
     presets.appendChild(dot);
   });
-
-  row.append(picker, text);
-  wrap.append(lbl, row, presets);
-  return wrap;
+  row.append(picker, text); wrap.append(lbl, row, presets); return wrap;
 }
 
 document.getElementById('add-cat-btn').addEventListener('click', () => {
-  const PRESET_COLORS = ['#059669','#18181b','#7c3aed','#ea580c','#db2777','#0ea5e9','#d97706','#dc2626'];
-  editCats.push({
-    id: 'cat_' + Date.now(),
-    label: 'カテゴリ',
-    emoji: '📌',
-    color: PRESET_COLORS[editCats.length % PRESET_COLORS.length],
-    webhook: '',
-  });
+  const PRESET_COLORS = ['#059669','#18181b','#7c3aed','#ea580c','#db2777'];
+  editCats.push({ id: 'cat_' + Date.now(), label: '新規枠', emoji: '📌', color: PRESET_COLORS[editCats.length % PRESET_COLORS.length], webhook: '' });
   renderCatSettings();
-  catSettingsList.lastElementChild.scrollIntoView({ behavior: 'smooth' });
 });
 
 // ── Daily auto-add ─────────────────────────────────────────────────────────────
 function renderDailyList() {
-  const list = document.getElementById('daily-settings-list');
-  list.innerHTML = '';
+  const list = document.getElementById('daily-settings-list'); list.innerHTML = '';
   editDailyItems.forEach((item, i) => {
-    const row = document.createElement('div');
-    row.className = 'daily-row';
+    const row = document.createElement('div'); row.className = 'daily-row';
+    const sel = document.createElement('select'); sel.className = 'daily-cat-select';
+    
+    // 未分類枠の選択肢
+    const optUn = document.createElement('option'); optUn.value = 'unclassified'; optUn.textContent = '📌 キャンバス(未分類)';
+    if(item.catId === 'unclassified') optUn.selected = true;
+    sel.appendChild(optUn);
 
-    const sel = document.createElement('select');
-    sel.className = 'daily-cat-select';
     editCats.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.id;
-      opt.textContent = `${c.emoji} ${c.label}`;
+      const opt = document.createElement('option'); opt.value = c.id; opt.textContent = `${c.emoji} ${c.label}`;
       if (c.id === item.catId) opt.selected = true;
       sel.appendChild(opt);
     });
     sel.addEventListener('change', () => { editDailyItems[i].catId = sel.value; });
 
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'field-input';
-    input.style.flex = '1';
-    input.placeholder = '内容を入力';
-    input.value = item.content || '';
+    const input = document.createElement('input'); input.type = 'text'; input.className = 'field-input'; input.style.flex = '1'; input.value = item.content || '';
     input.addEventListener('input', () => { editDailyItems[i].content = input.value; });
 
-    const del = document.createElement('button');
-    del.className = 'daily-del-btn';
-    del.textContent = '×';
+    const del = document.createElement('button'); del.className = 'daily-del-btn'; del.textContent = '×';
     del.addEventListener('click', () => { editDailyItems.splice(i, 1); renderDailyList(); });
 
-    row.appendChild(sel);
-    row.appendChild(input);
-    row.appendChild(del);
-    list.appendChild(row);
+    row.append(sel, input, del); list.appendChild(row);
   });
 }
 
 function checkDailyItems() {
   if (!dailyItems.length) return;
   const today = new Date().toDateString();
-  // 今日の日付のアイテムが1件でもあればスキップ
-  if (history.some(h => new Date(h.ts).toDateString() === today)) return;
+  if (history.some(h => new Date(h.ts).toDateString() === today && h.id.startsWith('daily-'))) return;
+  
   const baseTs = Date.now();
   let added = 0;
+  
+  const rect = canvasContainer.getBoundingClientRect();
+  const cWidth = rect.width || window.innerWidth - 24;
+  const cHeight = rect.height || 400;
+
   dailyItems.forEach((item, i) => {
-    const cat = cats.find(c => c.id === item.catId);
-    if (!cat || !item.content?.trim()) return;
+    if (!item.content?.trim()) return;
+    
+    let targetCat = cats.find(c => c.id === item.catId);
+    
     history.unshift({
       id: `daily-${baseTs}-${i}`,
-      catId:    cat.id,
-      catLabel: cat.label,
-      catEmoji: cat.emoji,
-      catBg:    cat.color ? colorToBg(cat.color) : (cat.bg || colorToBg('#7c3aed')),
+      catId: targetCat ? targetCat.id : 'unclassified',
+      catLabel: targetCat ? targetCat.label : '未分類',
+      catEmoji: targetCat ? targetCat.emoji : '📌',
+      catBg: targetCat ? (targetCat.color ? colorToBg(targetCat.color) : colorToBg('#7c3aed')) : colorToBg('#7c3aed'),
+      catColor: targetCat ? targetCat.color : '#a78bfa',
       text: item.content.trim(),
-      done: false,
+      done: targetCat ? true : false, // カテゴリ指定ありなら完了扱い、未分類ならキャンバスに出現
       ts: new Date(baseTs + i).toISOString(),
+      x: Math.max(15, Math.floor(Math.random() * (cWidth - 150))),
+      y: Math.max(15, Math.floor(Math.random() * (cHeight - 120)))
     });
     added++;
   });
   if (!added) return;
   localStorage.setItem('memo_history', JSON.stringify(history));
+  renderCanvasAndFolders();
   syncAuto();
 }
 
 document.getElementById('add-daily-btn').addEventListener('click', () => {
-  editDailyItems.push({ id: `d-${Date.now()}`, catId: editCats[0]?.id || '', content: '' });
+  editDailyItems.push({ id: `d-${Date.now()}`, catId: 'unclassified', content: '' });
   renderDailyList();
-  document.getElementById('daily-settings-list').lastElementChild?.scrollIntoView({ behavior: 'smooth' });
 });
 
-vibToggle.addEventListener('click', () => {
-  prefs.vib = !prefs.vib;
-  vibToggle.classList.toggle('on', prefs.vib);
-});
+vibToggle.addEventListener('click', () => { prefs.vib = !prefs.vib; vibToggle.classList.toggle('on', prefs.vib); });
 
 document.getElementById('save-btn').addEventListener('click', () => {
-  cats = editCats
-    .filter(c => c.label.trim() && c.emoji.trim())
-    .map(c => ({ ...c, bg: colorToBg(c.color || extractColor(c.bg || '')) }));
+  cats = editCats.filter(c => c.label.trim() && c.emoji.trim()).map(c => ({ ...c, bg: colorToBg(c.color || extractColor(c.bg || '')) }));
   dailyItems = editDailyItems.filter(d => d.content?.trim());
   localStorage.setItem('memo_cats',   JSON.stringify(cats));
   localStorage.setItem('memo_prefs',  JSON.stringify(prefs));
   localStorage.setItem('memo_daily',  JSON.stringify(dailyItems));
   localStorage.setItem('memo_daily_saved', new Date().toISOString());
-  renderGrid();
+  renderCanvasAndFolders();
   closeSettings();
-  checkDailyItems(); // 保存直後にも毎日追加チェック
-  syncAuto(); // カテゴリ・設定変更も Gist へ同期
-  if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
+  checkDailyItems();
+  syncAuto();
 });
 
 document.getElementById('settings-btn').addEventListener('click', openSettings);
 document.getElementById('settings-back').addEventListener('click', closeSettings);
 
-// ── History panel ─────────────────────────────────────────────────────────────
-function openHistory() {
-  renderHistory();
-  historyPanel.classList.add('open');
-  if (syncConfig.token && syncConfig.gistId && !syncDebounceTimer) {
-    syncPull().then(ok => { if (ok) renderHistory(); });
-  }
-}
-
-function closeHistory() {
-  historyPanel.classList.remove('open');
-}
+// ── History Panel & Canvas Restore Logic ──────────────────────────────────────
+function openHistory() { renderHistory(); historyPanel.classList.add('open'); if (syncConfig.token && syncConfig.gistId && !syncDebounceTimer) { syncPull().then(ok => { if (ok) renderHistory(); }); } }
+function closeHistory() { historyPanel.classList.remove('open'); renderCanvasAndFolders(); } // 戻る時にキャンバス再描画
 
 function renderHistory() {
-  // ── フィルター UI ─────────────────────────────
   historyFiltersEl.innerHTML = '';
   if (history.length) {
     // ステータスフィルター
-    const doneSection = document.createElement('div');
-    doneSection.className = 'filter-section';
-    doneSection.innerHTML = '<div class="filter-label">ステータス</div>';
-    const doneRow = document.createElement('div');
-    doneRow.className = 'filter-row';
-    [['all','全て'], ['undone','未完了 ○'], ['done','完了 ✓']].forEach(([val, label]) => {
-      const pill = document.createElement('button');
-      pill.className = 'filter-pill' + (historyFilter.done === val ? ' active' : '');
-      pill.textContent = label;
+    const doneSection = document.createElement('div'); doneSection.className = 'filter-section'; doneSection.innerHTML = '<div class="filter-label">ステータス</div>';
+    const doneRow = document.createElement('div'); doneRow.className = 'filter-row';
+    [['all','全て'], ['undone','キャンバス上 ○'], ['done','分類済み ✓']].forEach(([val, label]) => {
+      const pill = document.createElement('button'); pill.className = 'filter-pill' + (historyFilter.done === val ? ' active' : ''); pill.textContent = label;
       pill.addEventListener('click', () => { historyFilter.done = val; renderHistory(); });
       doneRow.appendChild(pill);
     });
-    doneSection.appendChild(doneRow);
-    historyFiltersEl.appendChild(doneSection);
-
-    // カテゴリフィルター（2種類以上あるとき）
-    const seen = new Map();
-    history.forEach(item => { if (!seen.has(item.catId)) seen.set(item.catId, item); });
-    if (seen.size > 1) {
-      const catSection = document.createElement('div');
-      catSection.className = 'filter-section';
-      catSection.innerHTML = '<div class="filter-label">カテゴリ</div>';
-      const catRow = document.createElement('div');
-      catRow.className = 'filter-row';
-      const allPill = document.createElement('button');
-      allPill.className = 'filter-pill' + (historyFilter.catId === 'all' ? ' active' : '');
-      allPill.textContent = '全て';
-      allPill.addEventListener('click', () => { historyFilter.catId = 'all'; renderHistory(); });
-      catRow.appendChild(allPill);
-      seen.forEach((item, catId) => {
-        const pill = document.createElement('button');
-        pill.className = 'filter-pill' + (historyFilter.catId === catId ? ' active' : '');
-        pill.textContent = `${item.catEmoji||''} ${item.catLabel||''}`;
-        pill.addEventListener('click', () => { historyFilter.catId = catId; renderHistory(); });
-        catRow.appendChild(pill);
-      });
-      catSection.appendChild(catRow);
-      historyFiltersEl.appendChild(catSection);
-    }
+    doneSection.appendChild(doneRow); historyFiltersEl.appendChild(doneSection);
   }
 
-  // ── アイテムなし ──────────────────────────────
   if (!history.length) {
-    historyList.innerHTML = '<div class="h-empty">まだメモがありません<br>カテゴリボタンを押して<br>1タップで保存！</div>';
-    return;
+    historyList.innerHTML = '<div class="h-empty">履歴は空です</div>'; return;
   }
 
-  // ── フィルター適用 ────────────────────────────
   let filtered = history;
   if (historyFilter.done === 'done')   filtered = filtered.filter(h => h.done);
   if (historyFilter.done === 'undone') filtered = filtered.filter(h => !h.done);
-  if (historyFilter.catId !== 'all')   filtered = filtered.filter(h => h.catId === historyFilter.catId);
 
-  if (!filtered.length) {
-    historyList.innerHTML = '<div class="h-empty">該当するメモがありません</div>';
-    return;
-  }
-
-  // ── アイテム描画 ──────────────────────────────
-  let html = '';
-  let lastDate = '';
+  let html = ''; let lastDate = '';
   filtered.forEach(item => {
     const d = new Date(item.ts);
     const dateStr = d.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' });
     const timeStr = d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-    if (dateStr !== lastDate) {
-      html += `<div class="date-sep">${esc(dateStr)}</div>`;
-      lastDate = dateStr;
-    }
+    if (dateStr !== lastDate) { html += `<div class="date-sep">${esc(dateStr)}</div>`; lastDate = dateStr; }
+    
     const dispText = item.text || '(テキストなし)';
-    const emptyClass = item.text ? '' : ' empty';
     const doneClass = item.done ? ' done' : '';
+    
+    // 【新設】分類済み(item.done==true)なら「キャンバスに戻す」ボタンを表示
+    const restoreBtnHtml = item.done ? `<button class="h-btn-small h-restore" data-id="${esc(item.id)}" title="キャンバスに戻す">↩️</button>` : '';
+
     html += `
       <div class="h-item${doneClass}">
-        <button class="h-check${item.done ? ' checked' : ''}" data-id="${esc(item.id)}" aria-label="${item.done ? '未完了にする' : '完了にする'}">${item.done ? '✓' : ''}</button>
-        <div class="h-badge" style="background:${esc(item.catBg||'#333')}">${esc(item.catEmoji||'📌')}</div>
+        <button class="h-check${item.done ? ' checked' : ''}" data-id="${esc(item.id)}">${item.done ? '✓' : ''}</button>
+        <div class="h-badge" style="background:${esc(item.catBg||'#7c3aed')}">${esc(item.catEmoji||'📌')}</div>
         <div class="h-body">
-          <div class="h-text${emptyClass}">${esc(dispText)}</div>
-          <div class="h-meta">${esc(item.catLabel||'')} · ${esc(timeStr)}</div>
+          <div class="h-text">${esc(dispText)}</div>
+          <div class="h-meta">${esc(item.catLabel||'未分類')} · ${esc(timeStr)}</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:4px">
-          ${item.text ? `<button class="h-copy" data-id="${esc(item.id)}" aria-label="コピー">📋</button>` : ''}
-          <button class="h-del" data-id="${esc(item.id)}" aria-label="削除">🗑️</button>
+        <div class="h-action-btns">
+          ${restoreBtnHtml}
+          ${item.text ? `<button class="h-btn-small h-copy" data-id="${esc(item.id)}">📋</button>` : ''}
+          <button class="h-btn-small h-del" data-id="${esc(item.id)}">🗑️</button>
         </div>
       </div>`;
   });
   historyList.innerHTML = html;
 
-  // ── イベントリスナー ──────────────────────────
+  // リスナー紐付け
   historyList.querySelectorAll('.h-check').forEach(btn => {
     btn.addEventListener('click', () => {
       const found = history.find(h => h.id === btn.dataset.id);
       if (found) {
         found.done = !found.done;
+        if(!found.done) { found.catId = 'unclassified'; found.catLabel = '未分類'; found.catEmoji = '📌'; }
+        localStorage.setItem('memo_history', JSON.stringify(history));
+        renderHistory(); syncAuto();
+      }
+    });
+  });
+
+  // キャンバスに復元するアクション
+  historyList.querySelectorAll('.h-restore').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const found = history.find(h => h.id === btn.dataset.id);
+      if (found) {
+        found.done = false;
+        found.catId = 'unclassified';
+        found.catLabel = '未分類';
+        found.catEmoji = '📌';
+        found.catBg = colorToBg('#7c3aed');
+        // 中央付近にリセット
+        const rect = canvasContainer.getBoundingClientRect();
+        found.x = Math.max(20, Math.floor((rect.width || 300) / 2 - 70));
+        found.y = Math.max(20, Math.floor((rect.height || 400) / 2 - 50));
+        
         localStorage.setItem('memo_history', JSON.stringify(history));
         if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
-        renderHistory();
-        syncAuto();
+        renderHistory(); syncAuto();
       }
     });
   });
@@ -1348,12 +1143,7 @@ function renderHistory() {
   historyList.querySelectorAll('.h-copy').forEach(btn => {
     btn.addEventListener('click', () => {
       const found = history.find(h => h.id === btn.dataset.id);
-      if (found?.text) {
-        navigator.clipboard.writeText(found.text)
-          .then(() => { btn.textContent = '✓'; setTimeout(() => { btn.textContent = '📋'; }, 1200); })
-          .catch(() => {});
-        if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
-      }
+      if (found?.text) { navigator.clipboard.writeText(found.text).then(() => { btn.textContent = '✓'; setTimeout(() => btn.textContent = '📋', 1200); }); }
     });
   });
 
@@ -1361,9 +1151,7 @@ function renderHistory() {
     btn.addEventListener('click', () => {
       history = history.filter(h => h.id !== btn.dataset.id);
       localStorage.setItem('memo_history', JSON.stringify(history));
-      if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
-      renderHistory();
-      syncAuto();
+      renderHistory(); syncAuto();
     });
   });
 }
@@ -1373,279 +1161,127 @@ document.getElementById('history-back').addEventListener('click', closeHistory);
 
 document.getElementById('export-btn').addEventListener('click', () => {
   const done = history.filter(h => h.done);
-  if (!done.length) { alert('完了済みのアイテムがありません'); return; }
-
-  // BOM付きCSV（Excelで文字化けしない）
+  if (!done.length) { alert('分類済みのアイテムがありません'); return; }
   const rows = [['日時', 'カテゴリ', '内容']];
   done.forEach(h => {
-    const dt = new Date(h.ts).toLocaleString('ja-JP', {
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit'
-    });
-    const cat = h.catLabel || '';
-    const text = (h.text || '').replace(/"/g, '""'); // CSV エスケープ
-    rows.push([dt, cat, `"${text}"`]);
+    const dt = new Date(h.ts).toLocaleString('ja-JP');
+    rows.push([dt, h.catLabel || '', `"${(h.text || '').replace(/"/g, '""')}"`]);
   });
   const csv = '﻿' + rows.map(r => r.join(',')).join('\r\n');
-  const fileName = `memo-done-${new Date().toLocaleDateString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g, '')}.csv`;
+  const fileName = `memo-archive-${new Date().toISOString().slice(0,10)}.csv`;
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-
-  // iPhone: Web Share API でファイル共有、PC: 直接ダウンロード
   try {
     const file = new File([blob], fileName, { type: 'text/csv' });
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({ files: [file], title: '完了済みメモ' });
-      return;
-    }
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: 'メモ書き出し' }); return; }
   } catch (_) {}
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  a.click();
-  URL.revokeObjectURL(url);
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = fileName; a.click(); URL.revokeObjectURL(url);
 });
 
 document.getElementById('clear-btn').addEventListener('click', () => {
   const doneCount = history.filter(h => h.done).length;
-  if (!doneCount) { alert('完了済みのアイテムがありません'); return; }
-  if (confirm(`完了済み ${doneCount} 件を削除しますか？`)) {
-    history = history.filter(h => !h.done);
-    localStorage.setItem('memo_history', JSON.stringify(history));
-    renderHistory();
-    syncAuto();
+  if (!doneCount) { alert('削除対象の分類済みメモがありません'); return; }
+  if (confirm(`分類済み ${doneCount} 件を完全に消去しますか？`)) {
+    history = history.filter(h => !h.done); localStorage.setItem('memo_history', JSON.stringify(history)); renderHistory(); syncAuto();
   }
 });
 
-// ── HTML escape ───────────────────────────────────────────────────────────────
-function esc(s) {
-  return String(s)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
-}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // ── PWA: manifest + icon ──────────────────────────────────────────────────────
 function setupPWA() {
-  // Generate app icon via Canvas
-  const c = document.createElement('canvas');
-  c.width = c.height = 512;
-  const ctx = c.getContext('2d');
-
-  // Background gradient
-  const g = ctx.createLinearGradient(0, 0, 512, 512);
-  g.addColorStop(0, '#7c3aed');
-  g.addColorStop(1, '#ec4899');
-  ctx.fillStyle = g;
-
-  // Rounded rect (manual for compatibility)
-  const r = 80;
-  ctx.beginPath();
-  ctx.moveTo(r, 0);
-  ctx.lineTo(512 - r, 0);
-  ctx.quadraticCurveTo(512, 0, 512, r);
-  ctx.lineTo(512, 512 - r);
-  ctx.quadraticCurveTo(512, 512, 512 - r, 512);
-  ctx.lineTo(r, 512);
-  ctx.quadraticCurveTo(0, 512, 0, 512 - r);
-  ctx.lineTo(0, r);
-  ctx.quadraticCurveTo(0, 0, r, 0);
-  ctx.closePath();
-  ctx.fill();
-
-  // Emoji
-  ctx.font = '300px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('⚡', 256, 270);
-
-  const iconURL = c.toDataURL('image/png');
-  document.getElementById('apple-icon').href = iconURL;
-
-  // Manifest
-  const manifest = {
-    name: '「あとでやる」1タップ超特急メモ',
-    short_name: '超特急メモ',
-    description: '脳のメモリを解放する超高速メモアプリ',
-    start_url: './',
-    display: 'standalone',
-    background_color: '#111111',
-    theme_color: '#111111',
-    orientation: 'portrait-primary',
-    lang: 'ja',
-    icons: [{ src: iconURL, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }],
-  };
-  const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-  document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
+  const c = document.createElement('canvas'); c.width = c.height = 512; const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 512, 512); g.addColorStop(0, '#7c3aed'); g.addColorStop(1, '#ec4899'); ctx.fillStyle = g;
+  const r = 80; ctx.beginPath(); ctx.moveTo(r, 0); ctx.lineTo(512 - r, 0); ctx.quadraticCurveTo(512, 0, 512, r); ctx.lineTo(512, 512 - r); ctx.quadraticCurveTo(512, 512, 512 - r, 512); ctx.lineTo(r, 512); ctx.quadraticCurveTo(0, 512, 0, 512 - r); ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0); ctx.closePath(); ctx.fill();
+  ctx.font = '280px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('📌', 256, 260);
+  const iconURL = c.toDataURL('image/png'); document.getElementById('apple-icon').href = iconURL;
+  const manifest = { name: 'スワイプ超特急メモ', short_name: 'スワイプメモ', start_url: './', display: 'standalone', background_color: '#f3f0ff', theme_color: '#7c3aed', orientation: 'portrait-primary', lang: 'ja', icons: [{ src: iconURL, sizes: '512x512', type: 'image/png' }] };
+  document.getElementById('pwa-manifest').href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
 }
 
 // ── GitHub Gist Sync ──────────────────────────────────────────────────────────
 let syncConfig = JSON.parse(localStorage.getItem('memo_sync') || '{}');
 let syncDebounceTimer = null;
 
-function setSyncStatus(msg) {
-  const el = document.getElementById('sync-status');
-  if (el) el.textContent = msg;
-}
-
+function setSyncStatus(msg) { const el = document.getElementById('sync-status'); if (el) el.textContent = msg; }
 async function gistReq(method, path, body) {
-  const res = await fetch(`https://api.github.com${path}`, {
-    method,
-    headers: {
-      'Authorization': `token ${syncConfig.token}`,
-      'Accept': 'application/vnd.github.v3+json',
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  const res = await fetch(`https://api.github.com${path}`, { method, headers: { 'Authorization': `token ${syncConfig.token}`, 'Accept': 'application/vnd.github.v3+json', ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json();
 }
-
-function buildSyncPayload() {
-  const dailyItemsSavedAt = localStorage.getItem('memo_daily_saved') || '';
-  return JSON.stringify({ cats, history, prefs, dailyItems, dailyItemsSavedAt, savedAt: new Date().toISOString() }, null, 2);
-}
+function buildSyncPayload() { return JSON.stringify({ cats, history, prefs, dailyItems, dailyItemsSavedAt: localStorage.getItem('memo_daily_saved')||'', savedAt: new Date().toISOString() }, null, 2); }
 
 async function syncPush() {
-  const tokenEl = document.getElementById('sync-token');
-  const gistEl  = document.getElementById('sync-gist-id');
+  const tokenEl = document.getElementById('sync-token'); const gistEl = document.getElementById('sync-gist-id');
   if (tokenEl?.value.trim()) syncConfig.token = tokenEl.value.trim();
-  if (!syncConfig.token) { setSyncStatus('⚠ トークンが未入力です'); return; }
+  if (!syncConfig.token) { setSyncStatus('⚠ トークン未設定'); return; }
   setSyncStatus('送信中…');
   try {
     const content = buildSyncPayload();
-    if (syncConfig.gistId) {
-      await gistReq('PATCH', `/gists/${syncConfig.gistId}`, {
-        files: { 'memo-sync.json': { content } },
-      });
-    } else {
-      const res = await gistReq('POST', '/gists', {
-        description: '「あとでやる」超特急メモ — 同期データ',
-        public: false,
-        files: { 'memo-sync.json': { content } },
-      });
-      if (!res.id) throw new Error('Gist IDが取得できませんでした');
+    if (syncConfig.gistId) { await gistReq('PATCH', `/gists/${syncConfig.gistId}`, { files: { 'memo-sync.json': { content } } }); }
+    else {
+      const res = await gistReq('POST', '/gists', { description: '超特急メモ同期データ', public: false, files: { 'memo-sync.json': { content } } });
       syncConfig.gistId = res.id;
     }
-    syncConfig.lastSync = new Date().toISOString();
-    localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
-    // 成功後は必ず ID フィールドを更新
+    syncConfig.lastSync = new Date().toISOString(); localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
     if (gistEl && syncConfig.gistId) gistEl.value = syncConfig.gistId;
-    setSyncStatus(`✓ 送信済み ${new Date().toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' })}`);
-  } catch (e) {
-    setSyncStatus(`⚠ 送信エラー: ${e.message}`);
-    console.error('syncPush error:', e);
-  }
+    setSyncStatus(`✓ 送信完了 ${new Date().toLocaleTimeString('ja-JP')}`);
+  } catch (e) { setSyncStatus(`⚠ エラー: ${e.message}`); }
 }
 
 async function syncPull() {
-  const tokenEl  = document.getElementById('sync-token');
-  const gistEl   = document.getElementById('sync-gist-id');
-  if (tokenEl?.value.trim()) syncConfig.token  = tokenEl.value.trim();
-  if (gistEl?.value.trim())  syncConfig.gistId = gistEl.value.trim();
-  if (!syncConfig.token)  { setSyncStatus('⚠ トークンが未入力です'); return false; }
-  if (!syncConfig.gistId) { setSyncStatus('⚠ Gist ID が未入力です'); return false; }
+  const tokenEl = document.getElementById('sync-token'); const gistEl = document.getElementById('sync-gist-id');
+  if (tokenEl?.value.trim()) syncConfig.token = tokenEl.value.trim();
+  if (gistEl?.value.trim()) syncConfig.gistId = gistEl.value.trim();
+  if (!syncConfig.token || !syncConfig.gistId) { setSyncStatus('⚠ 未設定項目あり'); return false; }
   setSyncStatus('取得中…');
   try {
     const gist = await gistReq('GET', `/gists/${syncConfig.gistId}`);
-    const raw = gist.files?.['memo-sync.json']?.content;
-    if (!raw) throw new Error('ファイルが見つかりません');
+    const raw = gist.files?.['memo-sync.json']?.content; if (!raw) throw new Error('データ空');
     const data = JSON.parse(raw);
-    if (data.cats)          { cats = data.cats;             localStorage.setItem('memo_cats',        JSON.stringify(cats));        renderGrid(); }
-    if (data.history)       { history = data.history;       localStorage.setItem('memo_history',     JSON.stringify(history));     }
-    if (data.prefs)         { prefs = data.prefs;           localStorage.setItem('memo_prefs',       JSON.stringify(prefs));       }
-    // dailyItems: Gistより新しいローカル設定は上書きしない
-    const localDailySaved = localStorage.getItem('memo_daily_saved') || '';
-    const gistDailySaved  = data.dailyItemsSavedAt || '';
-    if (data.dailyItems !== undefined && gistDailySaved >= localDailySaved) {
-      dailyItems = data.dailyItems;
-      localStorage.setItem('memo_daily', JSON.stringify(dailyItems));
-      if (gistDailySaved) localStorage.setItem('memo_daily_saved', gistDailySaved);
-    }
-    syncConfig.lastSync = new Date().toISOString();
-    localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
-    setSyncStatus(`✓ 取得済み ${new Date().toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' })}`);
+    if (data.cats) { cats = data.cats; localStorage.setItem('memo_cats', JSON.stringify(cats)); }
+    if (data.history) { history = data.history; localStorage.setItem('memo_history', JSON.stringify(history)); }
+    if (data.prefs) { prefs = data.prefs; localStorage.setItem('memo_prefs', JSON.stringify(prefs)); }
+    if (data.dailyItems) { dailyItems = data.dailyItems; localStorage.setItem('memo_daily', JSON.stringify(dailyItems)); }
+    syncConfig.lastSync = new Date().toISOString(); localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
+    setSyncStatus(`✓ 取得完了 ${new Date().toLocaleTimeString('ja-JP')}`);
+    renderCanvasAndFolders();
     return true;
-  } catch (e) {
-    setSyncStatus(`⚠ 取得エラー: ${e.message}`);
-    return false;
-  }
+  } catch (e) { setSyncStatus(`⚠ エラー: ${e.message}`); return false; }
 }
 
-function syncAuto() {
-  if (!syncConfig.token) return;
-  clearTimeout(syncDebounceTimer);
-  syncDebounceTimer = setTimeout(() => { syncDebounceTimer = null; syncPush(); }, 3000); // 3秒後に静かに送信
-}
+function syncAuto() { if (!syncConfig.token) return; clearTimeout(syncDebounceTimer); syncDebounceTimer = setTimeout(() => { syncDebounceTimer = null; syncPush(); }, 3000); }
 
-// 設定パネルを開いたとき、保存済みの値を反映
 const _origOpenSettings = openSettings;
 openSettings = function() {
   _origOpenSettings();
-  const tokenEl  = document.getElementById('sync-token');
-  const gistEl   = document.getElementById('sync-gist-id');
-  if (tokenEl && syncConfig.token)  tokenEl.value  = syncConfig.token;
-  if (gistEl  && syncConfig.gistId) gistEl.value   = syncConfig.gistId;
-  if (syncConfig.lastSync) {
-    setSyncStatus(`最終同期: ${new Date(syncConfig.lastSync).toLocaleString('ja-JP', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })}`);
-  }
+  const tokenEl = document.getElementById('sync-token'); const gistEl = document.getElementById('sync-gist-id');
+  if (tokenEl && syncConfig.token) tokenEl.value = syncConfig.token;
+  if (gistEl && syncConfig.gistId) gistEl.value = syncConfig.gistId;
+  if (syncConfig.lastSync) setSyncStatus(`最終同期: ${new Date(syncConfig.lastSync).toLocaleTimeString('ja-JP')}`);
 };
 
-document.getElementById('sync-token').addEventListener('input', e => {
-  syncConfig.token = e.target.value.trim();
-  localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
-});
-document.getElementById('sync-gist-id').addEventListener('input', e => {
-  syncConfig.gistId = e.target.value.trim();
-  localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
-});
+document.getElementById('sync-token').addEventListener('input', e => { syncConfig.token = e.target.value.trim(); localStorage.setItem('memo_sync', JSON.stringify(syncConfig)); });
+document.getElementById('sync-gist-id').addEventListener('input', e => { syncConfig.gistId = e.target.value.trim(); localStorage.setItem('memo_sync', JSON.stringify(syncConfig)); });
 document.getElementById('sync-push-btn').addEventListener('click', syncPush);
-document.getElementById('sync-reset-btn').addEventListener('click', () => {
-  if (!confirm('Gist ID をリセットして次回送信時に新しい Gist を作成しますか？')) return;
-  syncConfig.gistId = '';
-  localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
-  const gistEl = document.getElementById('sync-gist-id');
-  if (gistEl) gistEl.value = '';
-  setSyncStatus('リセット済み — 送信で新規作成されます');
-});
-document.getElementById('sync-pull-btn').addEventListener('click', async () => {
-  const ok = await syncPull();
-  if (ok) renderHistory();
-});
-document.getElementById('copy-gist-btn').addEventListener('click', () => {
-  const id = document.getElementById('sync-gist-id').value;
-  if (!id) return;
-  navigator.clipboard.writeText(id)
-    .then(() => { const b = document.getElementById('copy-gist-btn'); b.textContent = '✓'; setTimeout(() => { b.textContent = '📋'; }, 1500); })
-    .catch(() => {});
-});
+document.getElementById('sync-pull-btn').addEventListener('click', async () => { const ok = await syncPull(); if (ok) renderHistory(); });
+document.getElementById('sync-reset-btn').addEventListener('click', () => { if (!confirm('Gist IDをリセットしますか？')) return; syncConfig.gistId = ''; localStorage.setItem('memo_sync', JSON.stringify(syncConfig)); document.getElementById('sync-gist-id').value = ''; setSyncStatus('リセット完了'); });
+document.getElementById('copy-gist-btn').addEventListener('click', () => { const id = document.getElementById('sync-gist-id').value; if (!id) return; navigator.clipboard.writeText(id).then(() => { const b = document.getElementById('copy-gist-btn'); b.textContent = '✓'; setTimeout(() => b.textContent = '📋', 1500); }); });
 
 // ── Init ─────────────────────────────────────────────────────────────────────
-const buildStamp = new Date(document.lastModified).toLocaleString('ja-JP', {
-  year: 'numeric', month: '2-digit', day: '2-digit',
-  hour: '2-digit', minute: '2-digit'
-});
+const buildStamp = new Date(document.lastModified).toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
 document.getElementById('build-stamp').textContent = `build: ${buildStamp}`;
 
 setupPWA();
-renderGrid();
-setTimeout(() => memoInput.focus(), 400);
+renderCanvasAndFolders();
 
-// 起動時に Gist から自動取得 → 取得後に毎日追加チェック
+// 起動直後の同期とデイリー自動生成確認
 if (syncConfig.token && syncConfig.gistId) {
-  syncPull().then(ok => { if (ok) renderHistory(); checkDailyItems(); });
+  syncPull().then(ok => { checkDailyItems(); });
 } else {
   checkDailyItems();
 }
 
-// 画面を見に来たとき（タブ切替・スリープ復帰）に自動取得
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && syncConfig.token && syncConfig.gistId) {
-    syncPull().then(ok => { if (ok) renderHistory(); });
-  }
-});
+// タブ復帰時の自動同期
+document.addEventListener('visibilitychange', () => { if (!document.hidden && syncConfig.token && syncConfig.gistId) { syncPull(); } });
 </script>
 </body>
 </html>
