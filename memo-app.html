@@ -173,17 +173,13 @@
       border: 2px solid transparent;
       position: relative;
     }
-    .folder-box.drag-over {
-      transform: scale(1.08);
-      background-color: #ede9fe;
-    }
     #folder-archive { border-bottom: 4px solid #22c55e; }
     #folder-later { border-bottom: 4px solid #3b82f6; }
     #folder-trash { border-bottom: 4px solid #ef4444; }
     
-    #folder-archive.drag-over { background-color: #f0fdf4; border-color: #22c55e; }
-    #folder-later.drag-over { background-color: #eff6ff; border-color: #3b82f6; }
-    #folder-trash.drag-over { background-color: #fef2f2; border-color: #ef4444; }
+    #folder-archive.drag-over { background-color: #e8f5e9; border-color: #22c55e; transform: scale(1.06); }
+    #folder-later.drag-over { background-color: #e3f2fd; border-color: #3b82f6; transform: scale(1.06); }
+    #folder-trash.drag-over { background-color: #ffebee; border-color: #ef4444; transform: scale(1.06); }
 
     .folder-emoji { font-size: 24px; }
     .folder-label { font-size: 11px; font-weight: 800; color: #4c4c6d; text-align: center; }
@@ -219,7 +215,7 @@
 
     #memo-input {
       width: 100%;
-      height: 96px;
+      height: 100px;
       padding: 12px 14px;
       background: #fff;
       border: 2px solid #e8e0ff;
@@ -237,25 +233,21 @@
 
     /* カテゴリ事前選択チップ */
     .cat-selector-label {
-      font-size: 10px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.05em; margin: 10px 0 6px 2px;
+      font-size: 11px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.05em; margin: 12px 0 8px 2px;
     }
     #modal-cat-pickers {
-      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;
+      display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none;
     }
     #modal-cat-pickers::-webkit-scrollbar { display: none; }
     .cat-chip {
-      flex-shrink: 0; padding: 8px 14px; background: #fff; border: 2px solid #e8e0ff; border-radius: 50px;
-      font-size: 13px; font-weight: 700; color: #4c4c6d; cursor: pointer; touch-action: manipulation;
-      display: flex; align-items: center; gap: 4px; transition: all 0.15s;
+      flex-shrink: 0; padding: 10px 16px; background: #fff; border: 2px solid #e8e0ff; border-radius: 50px;
+      font-size: 14px; font-weight: 700; color: #4c4c6d; cursor: pointer; touch-action: manipulation;
+      display: flex; align-items: center; gap: 4px; transition: all 0.1s;
     }
-    .cat-chip.selected {
-      color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
+    .cat-chip:active { transform: scale(0.95); }
 
-    .modal-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; }
-    .modal-btn { flex: 1; padding: 14px; border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; touch-action: manipulation; }
-    .modal-btn.cancel { background: #ede9fe; color: #7c3aed; }
-    .modal-btn.primary { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; box-shadow: 0 4px 14px rgba(124,58,237,0.3); }
+    .modal-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+    .modal-btn.cancel { padding: 10px 20px; border: none; background: transparent; color: #a78bfa; font-size: 14px; font-weight: 600; cursor: pointer; }
 
     /* ── Slide Panels ── */
     .panel {
@@ -277,7 +269,6 @@
     .section-label { font-size: 11px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.12em; margin: 22px 0 10px 4px; }
     .cat-row { background: #fff; border-radius: 18px; padding: 14px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 2px 12px rgba(124,58,237,0.08); }
     .cat-swatch { width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; }
-    .cat-swatch-hint { font-size: 9px; color: #a78bfa; text-align: center; margin-top: 4px; line-height: 1.2; }
     .color-field { display: flex; gap: 8px; align-items: center; }
     .color-picker { width: 42px; height: 36px; border: none; border-radius: 10px; padding: 2px 3px; cursor: pointer; background: #f3f0ff; flex-shrink: 0; -webkit-appearance: none; outline: none; }
     .color-hex { font-family: 'SF Mono', Menlo, monospace; font-size: 14px; letter-spacing: 0.04em; }
@@ -289,7 +280,7 @@
     .del-btn { width: 30px; height: 30px; background: #fee2e2; border: none; border-radius: 50%; color: #f87171; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 10px; }
     .daily-hint { font-size: 12px; color: #a78bfa; margin: -4px 0 10px 2px; }
     .daily-row { background: #fff; border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 12px rgba(124,58,237,0.08); }
-    .daily-cat-select { background: #f3f0ff; border: none; border-radius: 10px; padding: 8px 10px; color: #1a1a2e; font-size: 14px; font-family: inherit; outline: none; flex-shrink: 0; appearance: none; -webkit-appearance: none; }
+    .daily-cat-select { background: #f3f0ff; border: none; border-radius: 10px; padding: 8px 10px; color: #1a1a2e; font-size: 14px; font-family: inherit; outline: none; appearance: none; -webkit-appearance: none; }
     .daily-del-btn { width: 28px; height: 28px; background: #fee2e2; border: none; border-radius: 50%; color: #f87171; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     #add-cat-btn { width: 100%; padding: 15px; background: transparent; border: 2px dashed #c4b5fd; border-radius: 18px; color: #a78bfa; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 2px; }
     .toggle-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 14px; padding: 15px 16px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(124,58,237,0.07); }
@@ -323,7 +314,6 @@
     .sync-btn { padding: 10px 20px; background: #7c3aed; border: none; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
     .sync-btn.secondary { background: #f3f0ff; color: #7c3aed; }
     #sync-status { font-size: 12px; color: #a78bfa; flex: 1; text-align: right; min-width: 0; }
-    .sync-hint { font-size: 11px; color: #7c6aad; background: #f3f0ff; border-radius: 10px; padding: 10px 12px; line-height: 1.7; border-left: 3px solid #c4b5fd; }
     .sync-gist-id-row { display: flex; align-items: center; gap: 6px; }
     .sync-gist-id-row .field-input { flex: 1; }
     .copy-gist-btn { padding: 9px 12px; background: #f3f0ff; border: none; border-radius: 10px; color: #7c3aed; font-size: 14px; cursor: pointer; flex-shrink: 0; }
@@ -338,7 +328,7 @@
     .filter-pill { flex-shrink: 0; padding: 7px 16px; background: #fff; border: 2px solid #e8e0ff; border-radius: 50px; font-size: 13px; font-weight: 600; color: #7c6aad; cursor: pointer; white-space: nowrap; font-family: inherit; }
     .filter-pill.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
 
-    .h-check { width: 22px; height: 22px; min-width: 22px; border-radius: 50%; border: 2px solid #d4c8f7; background: transparent; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; align-self: center; flex-shrink: 0; }
+    .h-check { width: 22px; height: 22px; min-width: 22px; border-radius: 50%; border: 2px solid #d4c8f7; background: transparent; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #fff; align-self: center; flex-shrink: 0; cursor: pointer; }
     .h-check.checked { background: #22c55e; border-color: #22c55e; }
     .h-item.done { background: #faf8ff; }
     .h-item.done .h-text { text-decoration: line-through; color: #b0a8cc; }
@@ -380,12 +370,11 @@
   <div id="input-card">
     <textarea id="memo-input" placeholder="思いついたこと、ここに…" rows="4" autocomplete="off" autocorrect="on" autocapitalize="sentences" spellcheck="true"></textarea>
     
-    <div class="cat-selector-label">カテゴリを選択（色＆レーン自動設定）</div>
+    <div class="cat-selector-label">カテゴリをタップしてキャンバスへ貼る</div>
     <div id="modal-cat-pickers"></div>
 
     <div class="modal-actions">
       <button class="modal-btn cancel" id="input-cancel-btn">閉じる</button>
-      <button class="modal-btn primary" id="input-submit-btn">付箋を貼る</button>
     </div>
   </div>
 </div>
@@ -474,7 +463,6 @@ let cats          = JSON.parse(localStorage.getItem('memo_cats') || 'null') || d
 let history       = JSON.parse(localStorage.getItem('memo_history') || '[]');
 let prefs         = JSON.parse(localStorage.getItem('memo_prefs') || '{"vib":true}');
 let dailyItems    = JSON.parse(localStorage.getItem('memo_daily') || '[]');
-let selectedCatId = cats[0]?.id || ''; // モーダル内の現在選択カテゴリ
 let editCats      = [];
 let editDailyItems = [];
 let historyFilter = { done: 'all' };
@@ -488,7 +476,6 @@ const memoInput      = document.getElementById('memo-input');
 const modalCatPickers= document.getElementById('modal-cat-pickers');
 const addTriggerBtn  = document.getElementById('add-trigger-btn');
 const inputCancelBtn = document.getElementById('input-cancel-btn');
-const inputSubmitBtn = document.getElementById('input-submit-btn');
 
 const settingsPanel  = document.getElementById('settings-panel');
 const historyPanel   = document.getElementById('history-panel');
@@ -500,8 +487,6 @@ const historyFiltersEl = document.getElementById('history-filters');
 // ── Render Canvas ────────────────────────────────────────────────────────────
 function renderCanvas() {
   canvasContainer.innerHTML = '';
-  
-  // キャンバスに表示すべき付箋：doneがfalse（アーカイブ・ゴミ箱入りしていない）かつ later（あとで）がfalseのもの
   const activeNotes = history.filter(item => !item.done && !item.later);
 
   if (activeNotes.length === 0) {
@@ -517,10 +502,9 @@ function renderCanvas() {
   const cHeight = rect.height || 400;
 
   activeNotes.forEach(item => {
-    // もし座標がない場合はレーンに基づいて初期X座標とランダムY座標を設定
     if (item.x === undefined || item.y === undefined) {
-      const { x, y } = calculateInitialPosition(item.catId, cWidth, cHeight);
-      item.x = x; item.y = y;
+      const pos = calculateInitialPosition(item.catId, cWidth, cHeight);
+      item.x = pos.x; item.y = pos.y;
     }
 
     const note = document.createElement('div');
@@ -529,7 +513,6 @@ function renderCanvas() {
     note.style.left = `${item.x}px`;
     note.style.top = `${item.y}px`;
     
-    // カテゴリごとのベースカラーを左ボーダーに100%適用して目が滑らないように
     const catData = cats.find(c => c.id === item.catId);
     if (catData && catData.color) {
       note.style.borderLeftColor = catData.color;
@@ -548,13 +531,11 @@ function renderCanvas() {
   });
 }
 
-// レーン（X座標の自動振り分け）計算ロジック
 function calculateInitialPosition(catId, canvasWidth, canvasHeight) {
   const catIndex = cats.findIndex(c => c.id === catId);
   const totalCats = cats.length || 1;
   const safeIndex = catIndex >= 0 ? catIndex : 0;
   
-  // キャンバスの横幅をカテゴリ数で等分割してレーンを作る
   const laneWidth = (canvasWidth - 150) / totalCats; 
   const targetX = Math.floor(10 + (safeIndex * laneWidth) + (Math.random() * (laneWidth * 0.4)));
   const targetY = Math.max(15, Math.floor(20 + Math.random() * (canvasHeight - 150)));
@@ -562,7 +543,7 @@ function calculateInitialPosition(catId, canvasWidth, canvasHeight) {
   return { x: targetX, y: targetY };
 }
 
-// ── Touch Drag Logic (iPhone用スワイプ最適化) ──────────────────────────────────
+// ── Touch Drag Logic ──────────────────────────────────────────────────────────
 function setupDragElement(el, item) {
   let startX = 0, startY = 0;
   let initialLeft = 0, initialTop = 0;
@@ -577,7 +558,6 @@ function setupDragElement(el, item) {
     initialLeft = parseInt(el.style.left, 10) || 0;
     initialTop = parseInt(el.style.top, 10) || 0;
 
-    // 3大フォルダの判定エリア情報をキャッシュ
     targetsData = [
       { element: document.getElementById('folder-archive'), id: 'archive', rect: document.getElementById('folder-archive').getBoundingClientRect() },
       { element: document.getElementById('folder-later'),   id: 'later',   rect: document.getElementById('folder-later').getBoundingClientRect() },
@@ -630,10 +610,8 @@ function setupDragElement(el, item) {
     });
 
     if (matchedTarget) {
-      // ポップアップを挟まず即座に処理する（爆速テンポ）
       executeFolderAction(item.id, matchedTarget.id);
     } else {
-      // 通常の移動座標保存
       const found = history.find(h => h.id === item.id);
       if (found) {
         found.x = parseInt(el.style.left, 10);
@@ -645,7 +623,6 @@ function setupDragElement(el, item) {
   });
 }
 
-// ── 3大特殊フォルダアクション実行 ───────────────────────────────────────────────
 function executeFolderAction(itemId, actionType) {
   const item = history.find(h => h.id === itemId);
   if (!item) return;
@@ -653,11 +630,9 @@ function executeFolderAction(itemId, actionType) {
   if (prefs.vib && navigator.vibrate) navigator.vibrate(20);
 
   if (actionType === 'archive') {
-    // 1. アーカイブ（二度手間なし：事前選択されたカテゴリで裏の履歴に保存）
     item.done = true;
     item.later = false;
     
-    // カテゴリに設定されたWebhookがあればキック
     const targetCat = cats.find(c => c.id === item.catId);
     if (targetCat && targetCat.webhook) {
       fetch(targetCat.webhook, {
@@ -673,12 +648,10 @@ function executeFolderAction(itemId, actionType) {
     }
   } 
   else if (actionType === 'later') {
-    // 2. あとで（ホールド状態・キャンバスから一時退避）
     item.done = false;
     item.later = true;
   } 
   else if (actionType === 'trash') {
-    // 3. ゴミ箱（誤操作防止＆即時完全抹消）
     history = history.filter(h => h.id !== itemId);
   }
 
@@ -687,93 +660,56 @@ function executeFolderAction(itemId, actionType) {
   syncAuto();
 }
 
-// ── 「あとで」フォルダのダブルクリック（ダブルタップ）復元機能 ─────────────────────
-document.getElementById('folder-later').addEventListener('dblclick', () => {
-  restoreLaterItems();
-});
-// iPhone用にタッチイベントでのダブルタップも検知
+// ── 「あとで」フォルダダブルタップ復元 ─────────────────────────────────────────
+document.getElementById('folder-later').addEventListener('dblclick', () => { restoreLaterItems(); });
 let lastTapTime = 0;
 document.getElementById('folder-later').addEventListener('touchend', (e) => {
-  const currentTime = new Date().getTime();
-  const tapLength = currentTime - lastTapTime;
-  if (tapLength < 300 && tapLength > 0) {
-    e.preventDefault();
-    restoreLaterItems();
-  }
+  const currentTime = new Date().getTime(); const tapLength = currentTime - lastTapTime;
+  if (tapLength < 300 && tapLength > 0) { e.preventDefault(); restoreLaterItems(); }
   lastTapTime = currentTime;
 });
 
 function restoreLaterItems() {
-  const laterCount = history.filter(h => h.later).length;
-  if (laterCount === 0) return;
-
+  const laterCount = history.filter(h => h.later).length; if (laterCount === 0) return;
   const rect = canvasContainer.getBoundingClientRect();
-  const cWidth = rect.width || window.innerWidth - 24;
-  const cHeight = rect.height || 400;
+  const cWidth = rect.width || window.innerWidth - 24; const cHeight = rect.height || 400;
 
-  // 「あとで」に入っていたアイテムをすべてキャンバスに一瞬で湧き立たせる
   history.forEach(item => {
     if (item.later) {
-      item.later = false;
-      item.done = false;
-      // 位置を中央付近か新規レーンに綺麗に再計算
+      item.later = false; item.done = false;
       const pos = calculateInitialPosition(item.catId, cWidth, cHeight);
       item.x = pos.x; item.y = pos.y;
     }
   });
-
   localStorage.setItem('memo_history', JSON.stringify(history));
   if (prefs.vib && navigator.vibrate) navigator.vibrate(35);
-  renderCanvas();
-  syncAuto();
+  renderCanvas(); syncAuto();
 }
 
-
-// ── モーダル内カテゴリ選択UIの生成 ──────────────────────────────────────────────
+// ── モーダル内カテゴリ選択 ＆ 1タップで即時作成 ───────────────────────────────────
 function renderModalCatPickers() {
   modalCatPickers.innerHTML = '';
   cats.forEach(cat => {
     const chip = document.createElement('button');
     chip.className = 'cat-chip';
-    if (cat.id === selectedCatId) {
-      chip.classList.add('selected');
-      chip.style.backgroundColor = cat.color || '#7c3aed';
-    }
+    chip.style.borderLeft = `5px solid ${cat.color || '#7c3aed'}`;
     chip.innerHTML = `<span>${esc(cat.emoji)}</span><span>${esc(cat.label)}</span>`;
+    
+    // 【劇的進化】カテゴリをタップした瞬間に即座に付箋を貼る
     chip.addEventListener('click', () => {
-      selectedCatId = cat.id;
-      renderModalCatPickers();
+      createStickyNote(cat.id);
     });
     modalCatPickers.appendChild(chip);
   });
 }
 
-// ── 新規メモ追加処理 ─────────────────────────────────────────────────────────
-addTriggerBtn.addEventListener('click', () => {
-  memoInput.value = '';
-  // デフォルトで最初のカテゴリを選んでおく
-  if (cats.length && !cats.some(c => c.id === selectedCatId)) {
-    selectedCatId = cats[0].id;
-  }
-  renderModalCatPickers();
-  inputModal.classList.add('open');
-  setTimeout(() => memoInput.focus(), 250);
-});
-
-inputCancelBtn.addEventListener('click', () => {
-  inputModal.classList.remove('open');
-  memoInput.blur();
-});
-
-inputSubmitBtn.addEventListener('click', () => {
+function createStickyNote(catId) {
   const text = memoInput.value.trim();
-  const targetCat = cats.find(c => c.id === selectedCatId) || cats[0];
+  const targetCat = cats.find(c => c.id === catId) || cats[0];
 
   const rect = canvasContainer.getBoundingClientRect();
   const cWidth = rect.width || window.innerWidth - 24;
   const cHeight = rect.height || 400;
-
-  // 事前にレーン座標を計算
   const pos = calculateInitialPosition(targetCat?.id, cWidth, cHeight);
 
   const newItem = {
@@ -798,20 +734,25 @@ inputSubmitBtn.addEventListener('click', () => {
   memoInput.blur();
 
   if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
-
   renderCanvas();
   syncAuto();
+}
+
+addTriggerBtn.addEventListener('click', () => {
+  memoInput.value = '';
+  renderModalCatPickers();
+  inputModal.classList.add('open');
+  setTimeout(() => memoInput.focus(), 250);
 });
+inputCancelBtn.addEventListener('click', () => { inputModal.classList.remove('open'); memoInput.blur(); });
 
 
 // ── Settings panel ────────────────────────────────────────────────────────────
 function openSettings() {
   editCats = cats.map(c => ({ ...c, color: c.color || extractColor(c.bg || '') }));
   editDailyItems = deepCopy(dailyItems);
-  renderCatSettings();
-  renderDailyList();
-  vibToggle.classList.toggle('on', prefs.vib);
-  settingsPanel.classList.add('open');
+  renderCatSettings(); renderDailyList();
+  vibToggle.classList.toggle('on', prefs.vib); settingsPanel.classList.add('open');
 }
 function closeSettings() { settingsPanel.classList.remove('open'); }
 
@@ -821,7 +762,7 @@ function renderCatSettings() {
     const row = document.createElement('div'); row.className = 'cat-row';
     const swatchWrap = document.createElement('div'); swatchWrap.style.cssText = 'flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:3px;';
     const swatch = document.createElement('div'); swatch.className = 'cat-swatch'; swatch.style.background = colorToBg(cat.color || '#7c3aed'); swatch.textContent = cat.emoji;
-    swatchWrap.append(swatch, document.createElement('div'));
+    swatchWrap.append(swatch);
 
     const fields = document.createElement('div'); fields.className = 'cat-fields';
     fields.append(
@@ -833,7 +774,6 @@ function renderCatSettings() {
 
     const delBtn = document.createElement('button'); delBtn.className = 'del-btn'; delBtn.textContent = '×';
     delBtn.addEventListener('click', () => { editCats.splice(i, 1); renderCatSettings(); });
-
     row.append(swatchWrap, fields, delBtn); catSettingsList.appendChild(row);
   });
 }
@@ -869,7 +809,7 @@ document.getElementById('add-cat-btn').addEventListener('click', () => {
   renderCatSettings();
 });
 
-// ── Daily auto-add (毎日追加・出現機能) ────────────────────────────────────────
+// ── Daily auto-add ─────────────────────────────────────────────────────────────
 function renderDailyList() {
   const list = document.getElementById('daily-settings-list'); list.innerHTML = '';
   editDailyItems.forEach((item, i) => {
@@ -893,11 +833,9 @@ function checkDailyItems() {
   const today = new Date().toDateString();
   if (history.some(h => new Date(h.ts).toDateString() === today && h.id.startsWith('daily-'))) return;
   
-  const baseTs = Date.now();
-  let added = 0;
+  const baseTs = Date.now(); let added = 0;
   const rect = canvasContainer.getBoundingClientRect();
-  const cWidth = rect.width || window.innerWidth - 24;
-  const cHeight = rect.height || 400;
+  const cWidth = rect.width || window.innerWidth - 24; const cHeight = rect.height || 400;
 
   dailyItems.forEach((item, i) => {
     if (!item.content?.trim()) return;
@@ -905,30 +843,18 @@ function checkDailyItems() {
     const pos = calculateInitialPosition(targetCat?.id, cWidth, cHeight);
 
     history.unshift({
-      id: `daily-${baseTs}-${i}`,
-      catId: targetCat?.id || 'unclassified',
-      catLabel: targetCat?.label || '未分類',
-      catEmoji: targetCat?.emoji || '📌',
-      catBg: targetCat ? colorToBg(targetCat.color) : colorToBg('#7c3aed'),
-      text: item.content.trim(),
-      done: false,
-      later: false,
-      ts: new Date(baseTs + i).toISOString(),
-      x: pos.x, y: pos.y
+      id: `daily-${baseTs}-${i}`, catId: targetCat?.id || 'unclassified', catLabel: targetCat?.label || '未分類', catEmoji: targetCat?.emoji || '📌',
+      catBg: targetCat ? colorToBg(targetCat.color) : colorToBg('#7c3aed'), text: item.content.trim(),
+      done: false, later: false, ts: new Date(baseTs + i).toISOString(), x: pos.x, y: pos.y
     });
     added++;
   });
   if (!added) return;
   localStorage.setItem('memo_history', JSON.stringify(history));
-  renderCanvas();
-  syncAuto();
+  renderCanvas(); syncAuto();
 }
 
-document.getElementById('add-daily-btn').addEventListener('click', () => {
-  editDailyItems.push({ id: `d-${Date.now()}`, catId: editCats[0]?.id || '', content: '' });
-  renderDailyList();
-});
-
+document.getElementById('add-daily-btn').addEventListener('click', () => { editDailyItems.push({ id: `d-${Date.now()}`, catId: editCats[0]?.id || '', content: '' }); renderDailyList(); });
 vibToggle.addEventListener('click', () => { prefs.vib = !prefs.vib; vibToggle.classList.toggle('on', prefs.vib); });
 
 document.getElementById('save-btn').addEventListener('click', () => {
@@ -938,16 +864,14 @@ document.getElementById('save-btn').addEventListener('click', () => {
   localStorage.setItem('memo_prefs',  JSON.stringify(prefs));
   localStorage.setItem('memo_daily',  JSON.stringify(dailyItems));
   localStorage.setItem('memo_daily_saved', new Date().toISOString());
-  renderCanvas();
-  closeSettings();
-  checkDailyItems();
-  syncAuto();
+  renderCanvas(); closeSettings(); checkDailyItems(); syncAuto();
 });
 
 document.getElementById('settings-btn').addEventListener('click', openSettings);
 document.getElementById('settings-back').addEventListener('click', closeSettings);
 
-// ── History Panel & Archive Management ────────────────────────────────────────
+
+// ── History Panel & チェックボックス連動アーカイブ化 ────────────────────────────
 function openHistory() { renderHistory(); historyPanel.classList.add('open'); if (syncConfig.token && syncConfig.gistId && !syncDebounceTimer) { syncPull().then(ok => { if (ok) renderHistory(); }); } }
 function closeHistory() { historyPanel.classList.remove('open'); renderCanvas(); }
 
@@ -978,11 +902,11 @@ function renderHistory() {
     if (dateStr !== lastDate) { html += `<div class="date-sep">${esc(dateStr)}</div>`; lastDate = dateStr; }
     
     const isDone = item.done;
-    const stateBadge = item.later ? '⏳ あとで' : (isDone ? '✓ 分類済' : '○ キャンバス');
+    const stateBadge = item.later ? '⏳ あとで' : (isDone ? '✓ アーカイブ済' : '○ キャンバス');
 
     html += `
       <div class="h-item ${isDone ? 'done' : ''}">
-        <div class="h-check ${isDone ? 'checked' : ''}">✓</div>
+        <div class="h-check ${isDone ? 'checked' : ''}" data-id="${esc(item.id)}">✓</div>
         <div class="h-badge" style="background:${esc(item.catBg || '#7c3aed')}">${esc(item.catEmoji || '📌')}</div>
         <div class="h-body">
           <div class="h-text">${esc(item.text || '(空メモ)')}</div>
@@ -997,14 +921,32 @@ function renderHistory() {
   });
   historyList.innerHTML = html;
 
+  // 履歴での丸型チェックボックスのクリックイベント（即時アーカイブ化）
+  historyList.querySelectorAll('.h-check').forEach(chk => {
+    chk.addEventListener('click', () => {
+      const found = history.find(h => h.id === chk.dataset.id);
+      if (found) {
+        // 現在の状態を反転
+        found.done = !found.done;
+        if (found.done) {
+          found.later = false; // アーカイブへ行くので「あとで」フラグは折る
+        } else {
+          found.catId = found.catId || 'unclassified';
+        }
+        localStorage.setItem('memo_history', JSON.stringify(history));
+        if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
+        renderHistory();
+        syncAuto();
+      }
+    });
+  });
+
   // キャンバスへ明示的に復元するロジック
   historyList.querySelectorAll('.h-restore').forEach(btn => {
     btn.addEventListener('click', () => {
       const found = history.find(h => h.id === btn.dataset.id);
       if (found) {
-        found.done = false;
-        found.later = false;
-        // 座標を現在のキャンバスレーンに再計算
+        found.done = false; found.later = false;
         const rect = canvasContainer.getBoundingClientRect();
         const pos = calculateInitialPosition(found.catId, rect.width || 300, rect.height || 400);
         found.x = pos.x; found.y = pos.y;
@@ -1034,8 +976,7 @@ document.getElementById('history-btn').addEventListener('click', openHistory);
 document.getElementById('history-back').addEventListener('click', closeHistory);
 
 document.getElementById('export-btn').addEventListener('click', () => {
-  const done = history.filter(h => h.done);
-  if (!done.length) { alert('アーカイブ済みのアイテムがありません'); return; }
+  const done = history.filter(h => h.done); if (!done.length) { alert('アーカイブ済みのアイテムがありません'); return; }
   const rows = [['日時', 'カテゴリ', '内容']];
   done.forEach(h => { rows.push([new Date(h.ts).toLocaleString('ja-JP'), h.catLabel || '', `"${(h.text || '').replace(/"/g, '""')}"`]); });
   const csv = '﻿' + rows.map(r => r.join(',')).join('\r\n');
@@ -1044,8 +985,7 @@ document.getElementById('export-btn').addEventListener('click', () => {
 });
 
 document.getElementById('clear-btn').addEventListener('click', () => {
-  const doneCount = history.filter(h => h.done).length;
-  if (!doneCount) { alert('削除対象のアーカイブがありません'); return; }
+  const doneCount = history.filter(h => h.done).length; if (!doneCount) { alert('削除対象のアーカイブがありません'); return; }
   if (confirm(`アーカイブ済み ${doneCount} 件を履歴から完全に消去しますか？`)) {
     history = history.filter(h => !h.done); localStorage.setItem('memo_history', JSON.stringify(history)); renderHistory(); syncAuto();
   }
@@ -1053,7 +993,7 @@ document.getElementById('clear-btn').addEventListener('click', () => {
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// ── PWA: manifest + icon ──────────────────────────────────────────────────────
+// ── PWA ──────────────────────────────────────────────────────────────────────
 function setupPWA() {
   const c = document.createElement('canvas'); c.width = c.height = 512; const ctx = c.getContext('2d');
   const g = ctx.createLinearGradient(0, 0, 512, 512); g.addColorStop(0, '#7c3aed'); g.addColorStop(1, '#ec4899'); ctx.fillStyle = g;
@@ -1077,8 +1017,7 @@ function buildSyncPayload() { return JSON.stringify({ cats, history, prefs, dail
 
 async function syncPush() {
   const tokenEl = document.getElementById('sync-token'); const gistEl = document.getElementById('sync-gist-id');
-  if (tokenEl?.value.trim()) syncConfig.token = tokenEl.value.trim();
-  if (!syncConfig.token) { setSyncStatus('⚠ 未設定'); return; }
+  if (tokenEl?.value.trim()) syncConfig.token = tokenEl.value.trim(); if (!syncConfig.token) { setSyncStatus('⚠ 未設定'); return; }
   setSyncStatus('送信中…');
   try {
     const content = buildSyncPayload();
@@ -1095,8 +1034,7 @@ async function syncPush() {
 
 async function syncPull() {
   const tokenEl = document.getElementById('sync-token'); const gistEl = document.getElementById('sync-gist-id');
-  if (tokenEl?.value.trim()) syncConfig.token = tokenEl.value.trim();
-  if (gistEl?.value.trim()) syncConfig.gistId = gistEl.value.trim();
+  if (tokenEl?.value.trim()) syncConfig.token = tokenEl.value.trim(); if (gistEl?.value.trim()) syncConfig.gistId = gistEl.value.trim();
   if (!syncConfig.token || !syncConfig.gistId) { setSyncStatus('⚠ 未入力あり'); return false; }
   setSyncStatus('取得中…');
   try {
@@ -1108,9 +1046,7 @@ async function syncPull() {
     if (data.prefs) { prefs = data.prefs; localStorage.setItem('memo_prefs', JSON.stringify(prefs)); }
     if (data.dailyItems) { dailyItems = data.dailyItems; localStorage.setItem('memo_daily', JSON.stringify(dailyItems)); }
     syncConfig.lastSync = new Date().toISOString(); localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
-    setSyncStatus(`✓ 同期完了 ${new Date().toLocaleTimeString('ja-JP')}`);
-    renderCanvas();
-    return true;
+    setSyncStatus(`✓ 同期完了 ${new Date().toLocaleTimeString('ja-JP')}`); renderCanvas(); return true;
   } catch (e) { setSyncStatus(`⚠ エラー: ${e.message}`); return false; }
 }
 
@@ -1120,8 +1056,7 @@ const _origOpenSettings = openSettings;
 openSettings = function() {
   _origOpenSettings();
   const tokenEl = document.getElementById('sync-token'); const gistEl = document.getElementById('sync-gist-id');
-  if (tokenEl && syncConfig.token) tokenEl.value = syncConfig.token;
-  if (gistEl && syncConfig.gistId) gistEl.value = syncConfig.gistId;
+  if (tokenEl && syncConfig.token) tokenEl.value = syncConfig.token; if (gistEl && syncConfig.gistId) gistEl.value = syncConfig.gistId;
   if (syncConfig.lastSync) setSyncStatus(`最終同期: ${new Date(syncConfig.lastSync).toLocaleTimeString('ja-JP')}`);
 };
 
@@ -1136,16 +1071,8 @@ document.getElementById('copy-gist-btn').addEventListener('click', () => { const
 const buildStamp = new Date(document.lastModified).toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
 document.getElementById('build-stamp').textContent = `build: ${buildStamp}`;
 
-setupPWA();
-renderCanvas();
-
-// 起動時の初期データロード処理
-if (syncConfig.token && syncConfig.gistId) {
-  syncPull().then(ok => { checkDailyItems(); });
-} else {
-  checkDailyItems();
-}
-
+setupPWA(); renderCanvas();
+if (syncConfig.token && syncConfig.gistId) { syncPull().then(ok => { checkDailyItems(); }); } else { checkDailyItems(); }
 document.addEventListener('visibilitychange', () => { if (!document.hidden && syncConfig.token && syncConfig.gistId) { syncPull(); } });
 </script>
 </body>
