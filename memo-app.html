@@ -129,6 +129,17 @@
       box-shadow: 0 14px 28px rgba(124,58,237,0.25);
       z-index: 99;
     }
+    .sticky-note.starred {
+      z-index: 20;
+      box-shadow: 0 6px 20px rgba(251,191,36,0.35);
+    }
+    .sticky-note-star {
+      position: absolute;
+      top: 6px; right: 7px;
+      font-size: 13px;
+      line-height: 1;
+      pointer-events: none;
+    }
     .sticky-note-text {
       font-size: 13px;
       line-height: 1.4;
@@ -300,6 +311,13 @@
       font-weight: 700; cursor: pointer; touch-action: manipulation;
     }
     #detail-edit-btn {
+      background: none; border: none; padding: 4px 2px;
+      color: #a78bfa; font-size: 13px; font-weight: 600;
+      cursor: pointer; touch-action: manipulation;
+      text-decoration: underline; text-underline-offset: 3px;
+      white-space: nowrap;
+    }
+    #detail-copy-btn {
       background: none; border: none; padding: 4px 2px;
       color: #a78bfa; font-size: 13px; font-weight: 600;
       cursor: pointer; touch-action: manipulation;
@@ -614,6 +632,7 @@
     <div id="detail-edit-cat-pickers"></div>
     <div id="detail-actions">
       <button id="detail-close-btn">閉じる</button>
+      <button id="detail-copy-btn">📋 コピー</button>
       <button id="detail-edit-btn">✏️ 編集</button>
       <button id="detail-save-btn">✓ 保存</button>
     </div>
@@ -699,6 +718,13 @@ function darkenColor(hex, factor = 0.72) {
   const r = Math.round(parseInt(h.slice(0,2), 16) * factor);
   const g = Math.round(parseInt(h.slice(2,4), 16) * factor);
   const b = Math.round(parseInt(h.slice(4,6), 16) * factor);
+  return '#' + [r,g,b].map(v => Math.min(255,v).toString(16).padStart(2,'0')).join('');
+}
+function lightenColor(hex, mix = 0.12) {
+  const h = hex.replace('#', '');
+  const r = Math.round(parseInt(h.slice(0,2), 16) * mix + 255 * (1 - mix));
+  const g = Math.round(parseInt(h.slice(2,4), 16) * mix + 255 * (1 - mix));
+  const b = Math.round(parseInt(h.slice(4,6), 16) * mix + 255 * (1 - mix));
   return '#' + [r,g,b].map(v => Math.min(255,v).toString(16).padStart(2,'0')).join('');
 }
 function colorToBg(hex) { return `linear-gradient(135deg, ${hex}, ${darkenColor(hex)})`; }
@@ -795,6 +821,7 @@ function renderCanvas() {
     const catData = cats.find(c => c.id === item.catId);
     if (catData && catData.color) {
       note.style.borderLeftColor = catData.color;
+      note.style.background = lightenColor(catData.color, 0.12);
     }
 
     // 【機能追加】時間表示に「月日」を追加
@@ -803,15 +830,17 @@ function renderCanvas() {
     const timeStr = dateObj.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
 
     note.innerHTML = `
+      ${item.starred ? '<div class="sticky-note-star">⭐</div>' : ''}
       <div class="sticky-note-text">${esc(item.text || '(空メモ)')}</div>
       <div class="sticky-note-meta">
-        <div>📌 ${esc(item.catLabel || '未分類')}</div>
+        <div>${esc(catData?.emoji || '📌')} ${esc(item.catLabel || '未分類')}</div>
         <div class="sticky-note-meta-row">
           <span>📅 ${esc(dateStr)}</span>
           <span>${esc(timeStr)}</span>
         </div>
       </div>
     `;
+    if (item.starred) note.classList.add('starred');
 
     setupDragElement(note, item);
     canvasContainer.appendChild(note);
@@ -836,9 +865,12 @@ function setupDragElement(el, item) {
   let initialLeft = 0, initialTop = 0;
   let targetsData = [];
   let isDragging = false;
+  let longPressTimer = null;
+  let longPressFired = false;
 
   el.addEventListener('pointerdown', (e) => {
     isDragging = true;
+    longPressFired = false;
     el.classList.add('dragging');
     el.setPointerCapture(e.pointerId);
 
@@ -853,6 +885,22 @@ function setupDragElement(el, item) {
       { element: document.getElementById('folder-trash'),   id: 'trash',   rect: document.getElementById('folder-trash').getBoundingClientRect() }
     ];
 
+    longPressTimer = setTimeout(() => {
+      const dx = Math.abs(parseInt(el.style.left, 10) - initialLeft);
+      const dy = Math.abs(parseInt(el.style.top,  10) - initialTop);
+      if (dx < 5 && dy < 5) {
+        longPressFired = true;
+        const found = history.find(h => h.id === item.id);
+        if (found) {
+          found.starred = !found.starred;
+          localStorage.setItem('memo_history', JSON.stringify(history));
+          if (prefs.vib && navigator.vibrate) navigator.vibrate(found.starred ? [20, 50, 20] : 15);
+          renderCanvas();
+          syncAuto();
+        }
+      }
+    }, 500);
+
     if (prefs.vib && navigator.vibrate) navigator.vibrate(8);
   });
 
@@ -860,6 +908,9 @@ function setupDragElement(el, item) {
     if (!isDragging) return;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      clearTimeout(longPressTimer);
+    }
 
     let newLeft = initialLeft + dx;
     let newTop = initialTop + dy;
@@ -888,9 +939,12 @@ function setupDragElement(el, item) {
 
   el.addEventListener('pointerup', (e) => {
     if (!isDragging) return;
+    clearTimeout(longPressTimer);
     isDragging = false;
     el.classList.remove('dragging');
     el.releasePointerCapture(e.pointerId);
+
+    if (longPressFired) return;
 
     const dx = Math.abs(e.clientX - startX);
     const dy = Math.abs(e.clientY - startY);
@@ -922,6 +976,7 @@ function setupDragElement(el, item) {
 
   el.addEventListener('pointercancel', () => {
     if (!isDragging) return;
+    clearTimeout(longPressTimer);
     isDragging = false;
     el.classList.remove('dragging');
     const found = history.find(h => h.id === item.id);
@@ -983,6 +1038,7 @@ const detailEditInput  = document.getElementById('detail-edit-input');
 const detailEditCatLabel = document.getElementById('detail-edit-cat-label');
 const detailEditCatPickers = document.getElementById('detail-edit-cat-pickers');
 const detailCloseBtn   = document.getElementById('detail-close-btn');
+const detailCopyBtn    = document.getElementById('detail-copy-btn');
 const detailEditBtn    = document.getElementById('detail-edit-btn');
 const detailSaveBtn    = document.getElementById('detail-save-btn');
 
@@ -1016,6 +1072,7 @@ function openDetailModal(itemId) {
   detailEditInput.style.display = 'none';
   detailEditCatLabel.style.display = 'none';
   detailEditCatPickers.style.display = 'none';
+  detailCopyBtn.style.display = 'inline';
   detailEditBtn.style.display = 'inline';
   detailSaveBtn.style.display = 'none';
 
@@ -1029,6 +1086,11 @@ function openDetailModal(itemId) {
 
   const card = detailCard;
   card.style.transition = 'none';
+  if (catData?.color) {
+    card.style.background = lightenColor(catData.color, 0.12);
+  } else {
+    card.style.background = '#fff';
+  }
 
   if (noteEl) {
     const nr = noteEl.getBoundingClientRect();
@@ -1090,10 +1152,12 @@ function closeDetailModal() {
 
 function enterEditMode() {
   detailIsEditing = true;
+  detailCard.style.background = '#fff';
   detailTextDisplay.style.display = 'none';
   detailEditInput.style.display = 'block';
   detailEditCatLabel.style.display = 'block';
   detailEditCatPickers.style.display = 'grid';
+  detailCopyBtn.style.display = 'none';
   detailEditBtn.style.display = 'none';
   detailSaveBtn.style.display = 'block';
 
@@ -1105,7 +1169,8 @@ function enterEditMode() {
     chip.style.borderLeft = `5px solid ${cat.color || '#7c3aed'}`;
     if (cat.id === detailEditCatId) chip.style.background = '#ede9fe';
     chip.innerHTML = `<span>${esc(cat.emoji)}</span><span>${esc(cat.label)}</span>`;
-    chip.addEventListener('click', () => {
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
       detailEditCatId = cat.id;
       detailEditCatPickers.querySelectorAll('.cat-chip').forEach(c => c.style.background = '#fff');
       chip.style.background = '#ede9fe';
@@ -1138,6 +1203,14 @@ function saveDetailEdit() {
 }
 
 detailCloseBtn.addEventListener('click', closeDetailModal);
+detailCopyBtn.addEventListener('click', () => {
+  const item = history.find(h => h.id === detailItemId);
+  if (!item?.text) return;
+  navigator.clipboard.writeText(item.text).then(() => {
+    detailCopyBtn.textContent = '✓ コピー完了';
+    setTimeout(() => detailCopyBtn.textContent = '📋 コピー', 1500);
+  });
+});
 detailEditBtn.addEventListener('click', enterEditMode);
 detailSaveBtn.addEventListener('click', saveDetailEdit);
 detailModal.addEventListener('click', (e) => { if (e.target === detailModal) closeDetailModal(); });
@@ -1318,8 +1391,8 @@ function createStickyNote(catId) {
   if (history.length > 300) history.length = 300;
   localStorage.setItem('memo_history', JSON.stringify(history));
 
-  inputModal.classList.remove('open');
-  memoInput.blur();
+  memoInput.value = '';
+  setTimeout(() => memoInput.focus(), 50);
 
   if (prefs.vib && navigator.vibrate) navigator.vibrate(15);
   renderCanvas();
