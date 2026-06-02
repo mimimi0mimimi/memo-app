@@ -168,7 +168,7 @@
       gap: 2px;
     }
 
-    /* ── サブタグ ── */
+    /* ── サブタグ（ベロ） ── */
     .sticky-tag {
       position: absolute;
       top: -7px; right: 14px;
@@ -348,11 +348,6 @@
     }
     #detail-actions {
       display: flex; align-items: center; gap: 12px; flex-shrink: 0;
-    }
-    #detail-close-btn {
-      flex: 1; padding: 11px; background: #ede9fe; border: none;
-      border-radius: 12px; color: #7c3aed; font-size: 14px;
-      font-weight: 700; cursor: pointer; touch-action: manipulation;
     }
     #detail-edit-btn {
       background: none; border: none; padding: 4px 2px;
@@ -867,7 +862,6 @@
     <div id="detail-edit-tag-label">タグ（ベロ）を選択</div>
     <div id="detail-edit-tag-pickers"></div>
     <div id="detail-actions">
-      <button id="detail-close-btn">閉じる</button>
       <button id="detail-copy-btn">📋 コピー</button>
       <button id="detail-edit-btn">✏️ 編集</button>
       <button id="detail-save-btn">✓ 保存</button>
@@ -1283,7 +1277,11 @@ function setupDragElement(el, item) {
     if (matchedTarget) {
       executeFolderAction(item.id, matchedTarget.id);
     } else if (isTap) {
-      openDetailModal(item.id);
+      const elRect = el.getBoundingClientRect();
+      const inset = 10;
+      const inBounds = startX >= elRect.left + inset && startX <= elRect.right  - inset &&
+                       startY >= elRect.top  + inset && startY <= elRect.bottom - inset;
+      if (inBounds) openDetailModal(item.id);
     } else {
       const found = history.find(h => h.id === item.id);
       if (found) {
@@ -1362,7 +1360,6 @@ const detailEditCatLabel = document.getElementById('detail-edit-cat-label');
 const detailEditCatPickers = document.getElementById('detail-edit-cat-pickers');
 const detailEditTagLabel = document.getElementById('detail-edit-tag-label');
 const detailEditTagPickers = document.getElementById('detail-edit-tag-pickers');
-const detailCloseBtn   = document.getElementById('detail-close-btn');
 const detailCopyBtn    = document.getElementById('detail-copy-btn');
 const detailEditBtn    = document.getElementById('detail-edit-btn');
 const detailSaveBtn    = document.getElementById('detail-save-btn');
@@ -1558,7 +1555,6 @@ function saveDetailEdit() {
   closeDetailModal();
 }
 
-detailCloseBtn.addEventListener('click', closeDetailModal);
 detailCopyBtn.addEventListener('click', () => {
   const item = history.find(h => h.id === detailItemId);
   if (!item?.text) return;
