@@ -982,7 +982,7 @@ function lightenColor(hex, mix = 0.12) {
   const b = Math.round(parseInt(h.slice(4,6), 16) * mix + 255 * (1 - mix));
   return '#' + [r,g,b].map(v => Math.min(255,v).toString(16).padStart(2,'0')).join('');
 }
-function colorToBg(hex) { return `linear-gradient(135deg, ${hex}, ${darkenColor(hex)})`; }
+function colorToBg(hex) { return `linear-gradient(135deg, ${hex}, ${lightenColor(hex, 0.35)})`; }
 function extractColor(bg) { const m = (bg || '').match(/#[0-9a-fA-F]{6}/); return m ? m[0] : '#7c3aed'; }
 function isValidHex(v) { return /^#[0-9a-fA-F]{6}$/.test(v); }
 
@@ -1281,7 +1281,16 @@ function setupDragElement(el, item) {
       const inset = 10;
       const inBounds = startX >= elRect.left + inset && startX <= elRect.right  - inset &&
                        startY >= elRect.top  + inset && startY <= elRect.bottom - inset;
-      if (inBounds) openDetailModal(item.id);
+      // タグ周囲5pxはタグ操作エリアとして除外
+      const tagElCheck = note.querySelector('.sticky-tag');
+      let nearTag = false;
+      if (tagElCheck) {
+        const tr = tagElCheck.getBoundingClientRect();
+        const pad = 5;
+        nearTag = startX >= tr.left - pad && startX <= tr.right  + pad &&
+                  startY >= tr.top  - pad && startY <= tr.bottom + pad;
+      }
+      if (inBounds && !nearTag) openDetailModal(item.id);
     } else {
       const found = history.find(h => h.id === item.id);
       if (found) {
@@ -2255,7 +2264,7 @@ document.getElementById('import-choice-overwrite').addEventListener('click', () 
   if (data.dailyItems) { dailyItems = data.dailyItems; localStorage.setItem('memo_daily', JSON.stringify(dailyItems)); }
   localStorage.setItem('memo_history', JSON.stringify(history));
  
-  renderCanvas(); renderHistory(); syncAuto();
+  updateRetentionBtns(); renderCanvas(); renderHistory(); syncAuto();
 });
 
 document.getElementById('import-choice-append').addEventListener('click', () => {
@@ -2338,7 +2347,7 @@ document.getElementById('import-file-settings').addEventListener('change', (e) =
       if (data.dailyItems) { dailyItems = data.dailyItems; localStorage.setItem('memo_daily', JSON.stringify(dailyItems)); }
       localStorage.setItem('memo_history', JSON.stringify(history));
      
-      renderCanvas(); closeSettings();
+      updateRetentionBtns(); renderCanvas(); closeSettings();
       alert('リストア完了しました！');
     } catch { alert('ファイルの読み込みに失敗しました。'); }
     e.target.value = '';
@@ -2428,7 +2437,7 @@ async function syncPull() {
     if (data.prefs) { prefs = data.prefs; localStorage.setItem('memo_prefs', JSON.stringify(prefs)); }
     if (data.dailyItems) { dailyItems = data.dailyItems; localStorage.setItem('memo_daily', JSON.stringify(dailyItems)); }
     syncConfig.lastSync = new Date().toISOString(); localStorage.setItem('memo_sync', JSON.stringify(syncConfig));
-    setSyncStatus(`✓ 同期完了 ${new Date().toLocaleTimeString('ja-JP')}`); renderCanvas(); return true;
+    setSyncStatus(`✓ 同期完了 ${new Date().toLocaleTimeString('ja-JP')}`); updateRetentionBtns(); renderCanvas(); return true;
   } catch (e) { setSyncStatus(`⚠ エラー: ${e.message}`); return false; }
 }
 
