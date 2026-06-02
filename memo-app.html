@@ -2092,7 +2092,7 @@ function renderHistory() {
   if (history.length) {
     const doneSection = document.createElement('div'); doneSection.className = 'filter-section'; doneSection.innerHTML = '<div class="filter-label">状態フィルター</div>';
     const doneRow = document.createElement('div'); doneRow.className = 'filter-row';
-    [['canvas','キャンバス上'], ['later','あとで保管中'], ['archive','アーカイブ済み'], ['trash','ゴミ箱']].forEach(([val, label]) => {
+    [['canvas','キャンバス'], ['later','あとで'], ['archive','アーカイブ'], ['trash','ゴミ箱']].forEach(([val, label]) => {
       const pill = document.createElement('button'); pill.className = 'filter-pill' + (historyFilter.done === val ? ' active' : ''); pill.textContent = label;
       pill.addEventListener('click', () => { historyFilter.done = (historyFilter.done === val ? 'all' : val); renderHistory(); });
       doneRow.appendChild(pill);
@@ -2205,11 +2205,11 @@ document.getElementById('export-btn').addEventListener('click', () => {
 
   if (!target.length) { alert('エクスポート対象のメモがありません'); return; }
 
-  const stateLabel = { all:'全て', canvas:'キャンバス上', archive:'アーカイブ済み', later:'あとで保管中', trash:'ゴミ箱' }[historyFilter.done] || '全て';
+  const stateLabel = { all:'ゴミ箱以外の全て', canvas:'キャンバス', archive:'アーカイブ', later:'あとで', trash:'ゴミ箱' }[historyFilter.done] || 'ゴミ箱以外の全て';
   const catLabel = historyFilter.catId !== 'all' ? (cats.find(c => c.id === historyFilter.catId)?.label || '') : '';
   const filterDesc = catLabel ? `${stateLabel}・${catLabel}` : stateLabel;
 
-  if (!confirm(`「${filterDesc}」${target.length}件をCSVでエクスポートしますか？`)) return;
+  if (!confirm(`${filterDesc} ${target.length}件をCSVでエクスポートしますか？`)) return;
 
   const rows = [['日時', '状態', 'カテゴリ', '内容']];
   target.forEach(h => {
@@ -2233,11 +2233,11 @@ document.getElementById('clear-btn').addEventListener('click', () => {
 
   if (!target.length) { alert('削除対象のメモがありません'); return; }
 
-  const stateLabel = { all:'全て', canvas:'キャンバス上', archive:'アーカイブ済み', later:'あとで保管中', trash:'ゴミ箱' }[historyFilter.done] || '全て';
+  const stateLabel = { all:'ゴミ箱以外の全て', canvas:'キャンバス', archive:'アーカイブ', later:'あとで', trash:'ゴミ箱' }[historyFilter.done] || 'ゴミ箱以外の全て';
   const catLabel = historyFilter.catId !== 'all' ? (cats.find(c => c.id === historyFilter.catId)?.label || '') : '';
   const filterDesc = catLabel ? `${stateLabel}・${catLabel}` : stateLabel;
 
-  if (!confirm(`「${filterDesc}」${target.length}件を完全に削除しますか？\nこの操作は取り消せません。`)) return;
+  if (!confirm(`${filterDesc} ${target.length}件を完全に削除しますか？\nこの操作は取り消せません。`)) return;
 
   const targetIds = new Set(target.map(h => h.id));
   history = history.filter(h => !targetIds.has(h.id));
@@ -2319,10 +2319,10 @@ document.getElementById('export-json-btn').addEventListener('click', () => {
   if (historyFilter.done === 'trash')   target = target.filter(h => h.deleted);
   if (historyFilter.catId !== 'all')    target = target.filter(h => h.catId === historyFilter.catId);
   if (!target.length) { alert('書き出し対象のメモがありません'); return; }
-  const stateLabel = { all:'全て', canvas:'キャンバス上', archive:'アーカイブ済み', later:'あとで保管中', trash:'ゴミ箱' }[historyFilter.done] || '全て';
+  const stateLabel = { all:'ゴミ箱以外の全て', canvas:'キャンバス', archive:'アーカイブ', later:'あとで', trash:'ゴミ箱' }[historyFilter.done] || 'ゴミ箱以外の全て';
   const catLabel = historyFilter.catId !== 'all' ? (cats.find(c => c.id === historyFilter.catId)?.label || '') : '';
   const filterDesc = catLabel ? `${stateLabel}・${catLabel}` : stateLabel;
-  if (!confirm(`「${filterDesc}」${target.length}件をJSONで書き出しますか？`)) return;
+  if (!confirm(`${filterDesc} ${target.length}件をJSONで書き出しますか？`)) return;
   const data = { history: target, savedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
