@@ -790,6 +790,9 @@
     .h-item.done { background: #faf8ff; }
     .h-item.done .h-text { text-decoration: line-through; color: #b0a8cc; }
     .h-item.done .h-badge { opacity: 0.5; }
+    .h-item.deleted { background: #f5f5f5; }
+    .h-item.deleted .h-text { color: #aaa; }
+    .h-item.deleted .h-badge { opacity: 0.35; filter: grayscale(0.5); }
   </style>
 </head>
 <body>
@@ -2089,24 +2092,21 @@ function renderHistory() {
   if (history.length) {
     const doneSection = document.createElement('div'); doneSection.className = 'filter-section'; doneSection.innerHTML = '<div class="filter-label">状態フィルター</div>';
     const doneRow = document.createElement('div'); doneRow.className = 'filter-row';
-    [['all','全て'], ['canvas','キャンバス上'], ['later','あとで保管中'], ['archive','アーカイブ済み']].forEach(([val, label]) => {
+    [['canvas','キャンバス上'], ['later','あとで保管中'], ['archive','アーカイブ済み'], ['trash','ゴミ箱']].forEach(([val, label]) => {
       const pill = document.createElement('button'); pill.className = 'filter-pill' + (historyFilter.done === val ? ' active' : ''); pill.textContent = label;
-      pill.addEventListener('click', () => { historyFilter.done = val; renderHistory(); });
+      pill.addEventListener('click', () => { historyFilter.done = (historyFilter.done === val ? 'all' : val); renderHistory(); });
       doneRow.appendChild(pill);
     });
     doneSection.appendChild(doneRow); historyFiltersEl.appendChild(doneSection);
 
     const catSection = document.createElement('div'); catSection.className = 'filter-section'; catSection.innerHTML = '<div class="filter-label">カテゴリフィルター</div>';
     const catRow = document.createElement('div'); catRow.className = 'filter-row';
-    const allPill = document.createElement('button'); allPill.className = 'filter-pill' + (historyFilter.catId === 'all' ? ' active' : ''); allPill.textContent = '全て';
-    allPill.addEventListener('click', () => { historyFilter.catId = 'all'; renderHistory(); });
-    catRow.appendChild(allPill);
     cats.forEach(cat => {
       const pill = document.createElement('button');
       pill.className = 'filter-pill' + (historyFilter.catId === cat.id ? ' active' : '');
       pill.innerHTML = `${esc(cat.emoji)} ${esc(cat.label)}`;
       if (historyFilter.catId === cat.id) { pill.style.background = cat.color; pill.style.borderColor = cat.color; }
-      pill.addEventListener('click', () => { historyFilter.catId = cat.id; renderHistory(); });
+      pill.addEventListener('click', () => { historyFilter.catId = (historyFilter.catId === cat.id ? 'all' : cat.id); renderHistory(); });
       catRow.appendChild(pill);
     });
     catSection.appendChild(catRow); historyFiltersEl.appendChild(catSection);
@@ -2115,9 +2115,11 @@ function renderHistory() {
   if (!history.length) { historyList.innerHTML = '<div class="h-empty">履歴がありません</div>'; return; }
 
   let filtered = history;
-  if (historyFilter.done === 'canvas')  filtered = filtered.filter(h => !h.done && !h.later);
-  if (historyFilter.done === 'archive') filtered = filtered.filter(h => h.done);
-  if (historyFilter.done === 'later')   filtered = filtered.filter(h => h.later);
+  if (historyFilter.done === 'all')     filtered = filtered.filter(h => !h.deleted);
+  if (historyFilter.done === 'canvas')  filtered = filtered.filter(h => !h.done && !h.later && !h.deleted);
+  if (historyFilter.done === 'archive') filtered = filtered.filter(h => h.done && !h.deleted);
+  if (historyFilter.done === 'later')   filtered = filtered.filter(h => h.later && !h.deleted);
+  if (historyFilter.done === 'trash')   filtered = filtered.filter(h => h.deleted);
   if (historyFilter.catId !== 'all')    filtered = filtered.filter(h => h.catId === historyFilter.catId);
 
   let html = ''; let lastDate = '';
@@ -2127,11 +2129,12 @@ function renderHistory() {
     if (dateStr !== lastDate) { html += `<div class="date-sep">${esc(dateStr)}</div>`; lastDate = dateStr; }
     
     const isDone = item.done;
-    const stateBadge = item.later ? '⏳ あとで' : (isDone ? '✓ アーカイブ済' : '○ キャンバス');
+    const isDeleted = item.deleted;
+    const stateBadge = isDeleted ? '🗑 ゴミ箱' : (item.later ? '⏳ あとで' : (isDone ? '✓ アーカイブ済' : '○ キャンバス'));
 
     html += `
-      <div class="h-item ${isDone ? 'done' : ''}">
-        <div class="h-check ${isDone ? 'checked' : ''}" data-id="${esc(item.id)}">✓</div>
+      <div class="h-item ${isDeleted ? 'deleted' : (isDone ? 'done' : '')}">
+        <div class="h-check ${isDone && !isDeleted ? 'checked' : ''}" data-id="${esc(item.id)}">✓</div>
         <div class="h-badge" style="background:${esc(item.catBg || '#7c3aed')}">${esc(item.catEmoji || '📌')}</div>
         <div class="h-body">
           <div class="h-text">${esc(item.text || '(空メモ)')}</div>
@@ -2150,17 +2153,21 @@ function renderHistory() {
     chk.addEventListener('click', () => {
       const found = history.find(h => h.id === chk.dataset.id);
       if (found) {
-        found.done = !found.done;
-        found.later = false; 
-        
-        if (!found.done) {
-          const rect = canvasContainer.getBoundingClientRect();
-          const pos = calculateInitialPosition(found.catId, rect.width || 300, rect.height || 400);
-          found.x = pos.x; found.y = pos.y;
+        if (found.deleted) {
+          // ゴミ箱 → 復元してアーカイブ
+          found.deleted = false; found.deletedAt = null;
+          found.done = true; found.later = false;
+        } else {
+          found.done = !found.done;
+          found.later = false;
+          if (!found.done) {
+            const rect = canvasContainer.getBoundingClientRect();
+            const pos = calculateInitialPosition(found.catId, rect.width || 300, rect.height || 400);
+            found.x = pos.x; found.y = pos.y;
+          }
         }
-
         localStorage.setItem('memo_history', JSON.stringify(history));
-       
+        renderCanvas();
         renderHistory();
         syncAuto();
       }
@@ -2189,14 +2196,16 @@ document.getElementById('history-back').addEventListener('click', closeHistory);
 // ── JSON エクスポート ──────────────────────────────────────────────────────────
 document.getElementById('export-btn').addEventListener('click', () => {
   let target = history;
-  if (historyFilter.done === 'canvas')  target = target.filter(h => !h.done && !h.later);
-  if (historyFilter.done === 'archive') target = target.filter(h => h.done);
-  if (historyFilter.done === 'later')   target = target.filter(h => h.later);
+  if (historyFilter.done === 'all')     target = target.filter(h => !h.deleted);
+  if (historyFilter.done === 'canvas')  target = target.filter(h => !h.done && !h.later && !h.deleted);
+  if (historyFilter.done === 'archive') target = target.filter(h => h.done && !h.deleted);
+  if (historyFilter.done === 'later')   target = target.filter(h => h.later && !h.deleted);
+  if (historyFilter.done === 'trash')   target = target.filter(h => h.deleted);
   if (historyFilter.catId !== 'all')    target = target.filter(h => h.catId === historyFilter.catId);
 
   if (!target.length) { alert('エクスポート対象のメモがありません'); return; }
 
-  const stateLabel = { all:'全て', canvas:'キャンバス上', archive:'アーカイブ済み', later:'あとで保管中' }[historyFilter.done] || '全て';
+  const stateLabel = { all:'全て', canvas:'キャンバス上', archive:'アーカイブ済み', later:'あとで保管中', trash:'ゴミ箱' }[historyFilter.done] || '全て';
   const catLabel = historyFilter.catId !== 'all' ? (cats.find(c => c.id === historyFilter.catId)?.label || '') : '';
   const filterDesc = catLabel ? `${stateLabel}・${catLabel}` : stateLabel;
 
@@ -2215,14 +2224,16 @@ document.getElementById('export-btn').addEventListener('click', () => {
 
 document.getElementById('clear-btn').addEventListener('click', () => {
   let target = history;
-  if (historyFilter.done === 'canvas')  target = target.filter(h => !h.done && !h.later);
-  if (historyFilter.done === 'archive') target = target.filter(h => h.done);
-  if (historyFilter.done === 'later')   target = target.filter(h => h.later);
+  if (historyFilter.done === 'all')     target = target.filter(h => !h.deleted);
+  if (historyFilter.done === 'canvas')  target = target.filter(h => !h.done && !h.later && !h.deleted);
+  if (historyFilter.done === 'archive') target = target.filter(h => h.done && !h.deleted);
+  if (historyFilter.done === 'later')   target = target.filter(h => h.later && !h.deleted);
+  if (historyFilter.done === 'trash')   target = target.filter(h => h.deleted);
   if (historyFilter.catId !== 'all')    target = target.filter(h => h.catId === historyFilter.catId);
 
   if (!target.length) { alert('削除対象のメモがありません'); return; }
 
-  const stateLabel = { all:'全て', canvas:'キャンバス上', archive:'アーカイブ済み', later:'あとで保管中' }[historyFilter.done] || '全て';
+  const stateLabel = { all:'全て', canvas:'キャンバス上', archive:'アーカイブ済み', later:'あとで保管中', trash:'ゴミ箱' }[historyFilter.done] || '全て';
   const catLabel = historyFilter.catId !== 'all' ? (cats.find(c => c.id === historyFilter.catId)?.label || '') : '';
   const filterDesc = catLabel ? `${stateLabel}・${catLabel}` : stateLabel;
 
@@ -2301,12 +2312,14 @@ document.getElementById('import-file-input').addEventListener('change', (e) => {
 // ── 履歴 JSON書出 ──────────────────────────────────────────────────────────────
 document.getElementById('export-json-btn').addEventListener('click', () => {
   let target = history;
-  if (historyFilter.done === 'canvas')  target = target.filter(h => !h.done && !h.later);
-  if (historyFilter.done === 'archive') target = target.filter(h => h.done);
-  if (historyFilter.done === 'later')   target = target.filter(h => h.later);
+  if (historyFilter.done === 'all')     target = target.filter(h => !h.deleted);
+  if (historyFilter.done === 'canvas')  target = target.filter(h => !h.done && !h.later && !h.deleted);
+  if (historyFilter.done === 'archive') target = target.filter(h => h.done && !h.deleted);
+  if (historyFilter.done === 'later')   target = target.filter(h => h.later && !h.deleted);
+  if (historyFilter.done === 'trash')   target = target.filter(h => h.deleted);
   if (historyFilter.catId !== 'all')    target = target.filter(h => h.catId === historyFilter.catId);
   if (!target.length) { alert('書き出し対象のメモがありません'); return; }
-  const stateLabel = { all:'全て', canvas:'キャンバス上', archive:'アーカイブ済み', later:'あとで保管中' }[historyFilter.done] || '全て';
+  const stateLabel = { all:'全て', canvas:'キャンバス上', archive:'アーカイブ済み', later:'あとで保管中', trash:'ゴミ箱' }[historyFilter.done] || '全て';
   const catLabel = historyFilter.catId !== 'all' ? (cats.find(c => c.id === historyFilter.catId)?.label || '') : '';
   const filterDesc = catLabel ? `${stateLabel}・${catLabel}` : stateLabel;
   if (!confirm(`「${filterDesc}」${target.length}件をJSONで書き出しますか？`)) return;
