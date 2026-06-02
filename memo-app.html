@@ -62,10 +62,7 @@
     #header-title {
       font-size: 13px;
       font-weight: 800;
-      background: linear-gradient(90deg, #7c3aed, #ec4899);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #a78bfa;
       letter-spacing: 0.03em;
     }
 
@@ -89,7 +86,7 @@
     .icon-btn:active { background: #ede9fe; transform: scale(0.95); }
     
     #add-trigger-btn {
-      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      background: #f9a8d4;
       color: #fff;
       font-size: 20px;
       font-weight: bold;
@@ -986,6 +983,10 @@ function lightenColor(hex, mix = 0.12) {
   return '#' + [r,g,b].map(v => Math.min(255,v).toString(16).padStart(2,'0')).join('');
 }
 function colorToBg(hex) { return `linear-gradient(135deg, ${hex}, ${lightenColor(hex, 0.35)})`; }
+function catBadgeStyle(hex) {
+  const light = lightenColor(hex, 0.12);
+  return `background:${light}; border-left:4px solid ${hex};`;
+}
 function extractColor(bg) { const m = (bg || '').match(/#[0-9a-fA-F]{6}/); return m ? m[0] : '#7c3aed'; }
 function isValidHex(v) { return /^#[0-9a-fA-F]{6}$/.test(v); }
 
@@ -1116,8 +1117,7 @@ function renderCanvas() {
     
     const catData = cats.find(c => c.id === item.catId);
     if (catData && catData.color) {
-      note.style.borderLeftColor = catData.color;
-      note.style.background = lightenColor(catData.color, 0.12);
+      note.style.cssText += catBadgeStyle(catData.color);
     }
 
     // 【機能追加】時間表示に「月日」を追加
@@ -1285,7 +1285,7 @@ function setupDragElement(el, item) {
       const inBounds = startX >= elRect.left + inset && startX <= elRect.right  - inset &&
                        startY >= elRect.top  + inset && startY <= elRect.bottom - inset;
       // タグ周囲5pxはタグ操作エリアとして除外
-      const tagElCheck = note.querySelector('.sticky-tag');
+      const tagElCheck = el.querySelector('.sticky-tag');
       let nearTag = false;
       if (tagElCheck) {
         const tr = tagElCheck.getBoundingClientRect();
@@ -1399,7 +1399,7 @@ function openDetailModal(itemId) {
 
   const catData = cats.find(c => c.id === item.catId);
   detailCatBadge.textContent = catData?.emoji || '📌';
-  detailCatBadge.style.background = catData ? colorToBg(catData.color) : colorToBg('#7c3aed');
+  detailCatBadge.style.cssText += catData ? catBadgeStyle(catData.color) : catBadgeStyle('#7c3aed');
   detailCatLabel.textContent = catData?.label || '未分類';
   const noteEl = canvasContainer.querySelector(`.sticky-note[data-id="${itemId}"]`);
   if (noteEl && catData?.color) {
@@ -1646,7 +1646,7 @@ function renderTrashList() {
     const row = document.createElement('div'); row.className = 'trash-item';
     const badge = document.createElement('div'); badge.className = 'trash-item-badge';
     badge.textContent = catData?.emoji || '📌';
-    badge.style.background = catData ? colorToBg(catData.color) : colorToBg('#7c3aed');
+    badge.style.cssText += catData ? catBadgeStyle(catData.color) : catBadgeStyle('#7c3aed');
     const body = document.createElement('div'); body.className = 'trash-item-body';
     const text = document.createElement('div'); text.className = 'trash-item-text';
     text.textContent = item.text || '(空メモ)';
@@ -1802,7 +1802,7 @@ function renderLaterList() {
     const badge = document.createElement('div');
     badge.className = 'later-item-badge';
     badge.textContent = catData?.emoji || '📌';
-    badge.style.background = catData ? colorToBg(catData.color) : colorToBg('#7c3aed');
+    badge.style.cssText += catData ? catBadgeStyle(catData.color) : catBadgeStyle('#7c3aed');
     const text = document.createElement('div');
     text.className = 'later-item-text';
     text.textContent = item.text || '(空メモ)';
@@ -1964,14 +1964,14 @@ function renderCatSettings() {
   editCats.forEach((cat, i) => {
     const row = document.createElement('div'); row.className = 'cat-row';
     const swatchWrap = document.createElement('div'); swatchWrap.style.cssText = 'flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:3px;';
-    const swatch = document.createElement('div'); swatch.className = 'cat-swatch'; swatch.style.background = colorToBg(cat.color || '#7c3aed'); swatch.textContent = cat.emoji;
+    const swatch = document.createElement('div'); swatch.className = 'cat-swatch'; swatch.style.cssText += catBadgeStyle(cat.color || '#7c3aed'); swatch.textContent = cat.emoji;
     swatchWrap.append(swatch);
 
     const fields = document.createElement('div'); fields.className = 'cat-fields';
     fields.append(
       makeField('絵文字', 'text', cat.emoji, '📌', 4, v => { editCats[i].emoji = v; swatch.textContent = v || '?'; }),
       makeField('ラベル', 'text', cat.label, 'カテゴリ名', 12, v => { editCats[i].label = v; }),
-      makeColorField(cat.color, v => { editCats[i].color = v; swatch.style.background = colorToBg(v); }),
+      makeColorField(cat.color, v => { editCats[i].color = v; swatch.style.cssText = swatch.style.cssText.replace(/background:[^;]*;?/g,''); swatch.style.cssText += catBadgeStyle(v); }),
       makeField('Webhook URL', 'url', cat.webhook, 'https://...', 300, v => { editCats[i].webhook = v; })
     );
 
@@ -1990,7 +1990,7 @@ function makeField(label, type, value, placeholder, maxLen, onChange) {
 }
 
 function makeColorField(color, onChange) {
-  const DEFAULTS = ['#059669','#18181b','#7c3aed','#ea580c','#db2777','#0ea5e9','#d97706'];
+  const DEFAULTS = ['#f4a4c0','#b18cfe','#93e3fd','#cde8b5','#fde68a','#fca5a5','#a5f3fc'];
   const safeColor = isValidHex(color) ? color : '#7c3aed';
   const wrap = document.createElement('div'); wrap.className = 'field-group';
   const lbl = document.createElement('div'); lbl.className = 'field-label'; lbl.textContent = 'ベースカラー';
@@ -2135,7 +2135,7 @@ function renderHistory() {
     html += `
       <div class="h-item ${isDeleted ? 'deleted' : (isDone ? 'done' : '')}">
         <div class="h-check ${isDone && !isDeleted ? 'checked' : ''}" data-id="${esc(item.id)}">✓</div>
-        <div class="h-badge" style="background:${esc(item.catBg || '#7c3aed')}">${esc(item.catEmoji || '📌')}</div>
+        <div class="h-badge" style="${esc(item.catBg ? catBadgeStyle(extractColor(item.catBg)) : catBadgeStyle('#7c3aed'))}">${esc(item.catEmoji || '📌')}</div>
         <div class="h-body">
           <div class="h-text">${esc(item.text || '(空メモ)')}</div>
           <div class="h-meta">${esc(item.catLabel || '未分類')} · ${esc(stateBadge)}</div>
@@ -2374,11 +2374,9 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 function setupPWA() {
   const c = document.createElement('canvas'); c.width = c.height = 512; const ctx = c.getContext('2d');
 
-  // 背景グラデーション（紫→ピンク）
-  const g = ctx.createLinearGradient(0, 0, 512, 512);
-  g.addColorStop(0, '#7c3aed'); g.addColorStop(1, '#ec4899');
+  // 背景（パステル紫単色）
   const r = 100; ctx.beginPath(); ctx.moveTo(r, 0); ctx.lineTo(512 - r, 0); ctx.quadraticCurveTo(512, 0, 512, r); ctx.lineTo(512, 512 - r); ctx.quadraticCurveTo(512, 512, 512 - r, 512); ctx.lineTo(r, 512); ctx.quadraticCurveTo(0, 512, 0, 512 - r); ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0); ctx.closePath();
-  ctx.fillStyle = g; ctx.fill();
+  ctx.fillStyle = '#c4b5fd'; ctx.fill();
 
   // メモ帳本体（白）
   const mx = 120, my = 130, mw = 272, mh = 300, mr = 28;
@@ -2392,16 +2390,16 @@ function setupPWA() {
     ctx.fillStyle = color; ctx.globalAlpha = alpha; ctx.fill(); ctx.globalAlpha = 1;
   };
   // 太い1行目
-  ctx.beginPath(); ctx.roundRect(lineX, 210, lineW1, 22, 11); ctx.fillStyle = '#7c3aed'; ctx.fill();
+  ctx.beginPath(); ctx.roundRect(lineX, 210, lineW1, 22, 11); ctx.fillStyle = '#a78bfa'; ctx.fill();
   // 細い行
-  ctx.beginPath(); ctx.roundRect(lineX, 252, lineW2, 16, 8); ctx.fillStyle = '#c4b5fd'; ctx.fill();
-  ctx.beginPath(); ctx.roundRect(lineX, 284, lineW3, 16, 8); ctx.fillStyle = '#c4b5fd'; ctx.fill();
-  ctx.beginPath(); ctx.roundRect(lineX, 316, lineW4, 16, 8); ctx.fillStyle = '#c4b5fd'; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
+  ctx.beginPath(); ctx.roundRect(lineX, 252, lineW2, 16, 8); ctx.fillStyle = '#ddd6fe'; ctx.fill();
+  ctx.beginPath(); ctx.roundRect(lineX, 284, lineW3, 16, 8); ctx.fillStyle = '#ddd6fe'; ctx.fill();
+  ctx.beginPath(); ctx.roundRect(lineX, 316, lineW4, 16, 8); ctx.fillStyle = '#ddd6fe'; ctx.globalAlpha = 0.7; ctx.fill(); ctx.globalAlpha = 1;
 
   // ピン（左）
-  ctx.beginPath(); ctx.roundRect(186, 88, 40, 68, 20); ctx.fillStyle = '#ec4899'; ctx.fill();
+  ctx.beginPath(); ctx.roundRect(186, 88, 40, 68, 20); ctx.fillStyle = '#f9a8d4'; ctx.fill();
   // ピン（右）
-  ctx.beginPath(); ctx.roundRect(246, 88, 40, 68, 20); ctx.fillStyle = '#f9a8d4'; ctx.fill();
+  ctx.beginPath(); ctx.roundRect(246, 88, 40, 68, 20); ctx.fillStyle = '#fbcfe8'; ctx.fill();
 
   const iconURL = c.toDataURL('image/png'); document.getElementById('apple-icon').href = iconURL;
   const manifest = { name: 'はるメモ', short_name: 'はるメモ', start_url: './', display: 'standalone', background_color: '#f3f0ff', theme_color: '#7c3aed', orientation: 'portrait-primary', lang: 'ja', icons: [{ src: iconURL, sizes: '512x512', type: 'image/png' }] };
