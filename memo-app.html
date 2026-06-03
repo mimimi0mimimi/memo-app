@@ -345,6 +345,7 @@
     }
     #detail-actions {
       display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+      justify-content: flex-end;
     }
     #detail-edit-btn {
       background: none; border: none; padding: 4px 2px;
@@ -1005,9 +1006,37 @@ if (!prefs.trashDays) prefs.trashDays = 10;
 let dailyItems    = JSON.parse(localStorage.getItem('memo_daily') || '[]');
 let editCats      = [];
 let editDailyItems = [];
-let historyFilter = { done: 'all', catId: 'all' };
+const HISTORY_FILTER_STORAGE_KEY = 'memo_history_filter';
+const CANVAS_FILTER_STORAGE_KEY = 'memo_canvas_filter_cat_ids';
+let historyFilter = normalizeHistoryFilter(safeJsonParse(localStorage.getItem(HISTORY_FILTER_STORAGE_KEY), { done: 'all', catId: 'all' }));
 
 function deepCopy(x) { return JSON.parse(JSON.stringify(x)); }
+
+function safeJsonParse(raw, fallback) {
+  if (!raw) return fallback;
+  try { return JSON.parse(raw); }
+  catch { return fallback; }
+}
+
+function normalizeHistoryFilter(filter) {
+  const validDone = ['all', 'canvas', 'later', 'archive', 'trash'];
+  const done = validDone.includes(filter?.done) ? filter.done : 'all';
+  const catId = filter?.catId && cats.some(cat => cat.id === filter.catId) ? filter.catId : 'all';
+  return { done, catId };
+}
+
+function persistHistoryFilter() {
+  localStorage.setItem(HISTORY_FILTER_STORAGE_KEY, JSON.stringify(historyFilter));
+}
+
+function getSavedCanvasFilterCatIds() {
+  return safeJsonParse(localStorage.getItem(CANVAS_FILTER_STORAGE_KEY), [])
+    .filter(catId => cats.some(cat => cat.id === catId));
+}
+
+function persistCanvasFilter() {
+  localStorage.setItem(CANVAS_FILTER_STORAGE_KEY, JSON.stringify([...canvasFilterCatIds]));
+}
 
 // ── DOM refs ─────────────────────────────────────────────────────────────────
 const canvasContainer = document.getElementById('canvas-container');
@@ -1024,7 +1053,7 @@ const historyList    = document.getElementById('history-list');
 const historyFiltersEl = document.getElementById('history-filters');
 
 // ── キャンバスカテゴリフィルター ─────────────────────────────────────────────
-let canvasFilterCatIds = new Set();
+let canvasFilterCatIds = new Set(getSavedCanvasFilterCatIds());
 
 function renderCanvasFilterBar() {
   const bar = document.getElementById('canvas-filter-bar');
@@ -1051,6 +1080,7 @@ function renderCanvasFilterBar() {
       } else {
         canvasFilterCatIds.add(cat.id);
       }
+      persistCanvasFilter();
       applyCanvasFilter();
     });
     bar.appendChild(pill);
@@ -2076,6 +2106,10 @@ document.getElementById('save-btn').addEventListener('click', () => {
   localStorage.setItem('memo_prefs',  JSON.stringify(prefs));
   localStorage.setItem('memo_daily',  JSON.stringify(dailyItems));
   localStorage.setItem('memo_daily_saved', new Date().toISOString());
+  historyFilter = normalizeHistoryFilter(historyFilter);
+  canvasFilterCatIds = new Set([...canvasFilterCatIds].filter(catId => cats.some(cat => cat.id === catId)));
+  persistHistoryFilter();
+  persistCanvasFilter();
   renderCanvas(); closeSettings(); checkDailyItems(); syncAuto();
 });
 
@@ -2094,7 +2128,11 @@ function renderHistory() {
     const doneRow = document.createElement('div'); doneRow.className = 'filter-row';
     [['canvas','キャンバス'], ['later','あとで'], ['archive','アーカイブ'], ['trash','ゴミ箱']].forEach(([val, label]) => {
       const pill = document.createElement('button'); pill.className = 'filter-pill' + (historyFilter.done === val ? ' active' : ''); pill.textContent = label;
-      pill.addEventListener('click', () => { historyFilter.done = (historyFilter.done === val ? 'all' : val); renderHistory(); });
+      pill.addEventListener('click', () => {
+        historyFilter.done = (historyFilter.done === val ? 'all' : val);
+        persistHistoryFilter();
+        renderHistory();
+      });
       doneRow.appendChild(pill);
     });
     doneSection.appendChild(doneRow); historyFiltersEl.appendChild(doneSection);
@@ -2106,7 +2144,11 @@ function renderHistory() {
       pill.className = 'filter-pill' + (historyFilter.catId === cat.id ? ' active' : '');
       pill.innerHTML = `${esc(cat.emoji)} ${esc(cat.label)}`;
       if (historyFilter.catId === cat.id) { pill.style.background = cat.color; pill.style.borderColor = cat.color; }
-      pill.addEventListener('click', () => { historyFilter.catId = (historyFilter.catId === cat.id ? 'all' : cat.id); renderHistory(); });
+      pill.addEventListener('click', () => {
+        historyFilter.catId = (historyFilter.catId === cat.id ? 'all' : cat.id);
+        persistHistoryFilter();
+        renderHistory();
+      });
       catRow.appendChild(pill);
     });
     catSection.appendChild(catRow); historyFiltersEl.appendChild(catSection);
